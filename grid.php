@@ -11,35 +11,6 @@ session_start();
   include "db_con.php";
   include "checkstatus.php";
   include_once "incl_funcs.php";
-
- if( !empty( $_POST ) ) {
-    global $mysqli;
-    
-    $wr_rqstr_id = $_SESSION["UserId"];
-    $wr_title = $_POST['txttitleworkreq'];
-    $wr_date = date( 'Y-m-d' );
-    $wr_exptd_date_completion = fn_date_user_to_db_format( $_POST['txtcompdate'] );
-    $wr_objective = $_POST['txtreqobjective'];
-    $wr_doc_path = $_POST['txtfilelink'];
-    $wr_it_staff_id = $_POST['cmbItPer'];
-    $wr_stake_hldr_id = $_POST['cmbStkHldr'];
-    $wr_status = 1;
-    
-    $sql = " INSERT INTO app_work_request(wr_date,wr_rqstr_id,wr_title,wr_objective,wr_it_staff_id,wr_exptd_date_completion,wr_stake_hldr_id,wr_doc_path,wr_status) ";
-    $sql.= " VALUES(?,?,?,?,?,?,?,?,?) ";
-    
-    if( $stmt = $mysqli->prepare( $sql ) ) {
-        $stmt->bind_param( "sissisiss", $wr_date, $wr_rqstr_id, $wr_title, $wr_objective, $wr_it_staff_id, $wr_exptd_date_completion, $wr_stake_hldr_id, $wr_doc_path, $wr_status );
-        $reslt = $stmt->execute();
-	if( !$reslt ) {
-	    die($mysqli->error);
-	}
-        $stmt->close();
-    }
-    else {
-        echo "\nERROR: could not prepare SQL statement: ";
-    }
- }
 ?>
 
 <!DOCTYPE HTML>
@@ -59,6 +30,79 @@ session_start();
 	</head>
 	
 	<body>
+	
+<?php
+ if( !empty( $_POST ) ) {
+    global $mysqli;
+    
+    $wr_rqstr_id = $_SESSION["UserId"];
+    $wr_title = $_POST['txttitleworkreq'];
+    $wr_date = date( 'Y-m-d' );
+    $wr_exptd_date_completion = fn_date_user_to_db_format( $_POST['txtcompdate'] );
+    $wr_objective = $_POST['txtreqobjective'];
+    $wr_doc_path = $_POST['txtfilelink'];
+    $wr_it_staff_id = $_POST['cmbItPer'];
+    $wr_stake_hldr_id = $_POST['cmbStkHldr'];
+    $wr_stake_hldr_status = 1;
+    $es_excu_arry = $_POST['cmbExcu'];
+    $wr_status = 1;
+    
+    $sql = " INSERT INTO app_work_request(wr_date,wr_rqstr_id,wr_title,wr_objective,wr_it_staff_id,wr_exptd_date_completion,wr_stake_hldr_id,wr_stake_hldr_status,wr_doc_path,wr_status) ";
+    $sql.= " VALUES(?,?,?,?,?,?,?,?,?) ";
+    
+    if( $stmt = $mysqli->prepare( $sql ) ) {
+        $stmt->bind_param( "sissisiss", $wr_date, $wr_rqstr_id, $wr_title, $wr_objective, $wr_it_staff_id, $wr_exptd_date_completion, $wr_stake_hldr_id, $wr_stake_hldr_status, $wr_doc_path, $wr_status );
+        $reslt = $stmt->execute();
+	if( !$reslt ) {
+	    die($mysqli->error);
+	}
+        $stmt->close();
+	
+	$sql = " SELECT MAX(wr_id) AS id FROM app_work_request ";
+	
+	if( $result = $mysqli->query( $sql ) ) {
+	  
+	  while( $obj = $result->fetch_object() ) {
+	    
+	    $id = $obj->id; //Get the new Id
+	    $es_status = 1;
+	    echo "<script language='javascript'>";
+	    echo "var gv_new_req_id = '".$id."';";
+	    echo "</script>";
+	    
+	    //Create records for the Excutives' SignOff
+	    if( !empty( $es_excu_arry ) && isset( $es_excu_arry ) ) {
+	      foreach( $es_excu_arry AS $key=>$val ) {
+		if( $val ) {
+		  $sql = " INSERT INTO app_executive_signoff(es_wr_id,es_excu_id,es_status) ";
+		  $sql.= " VALUES(?,?,?) ";
+		  if( $stmt = $mysqli->prepare( $sql ) ) {
+		    $stmt->bind_param( "ii", $id, $val, $es_status );
+		    $reslt = $stmt->execute();
+		    if( !$reslt ) {
+			die($mysqli->error);
+		    }
+		    $stmt->close();
+		  }
+		}
+	      }
+	    }
+	  }
+	  $result->close();
+	  
+	}
+	
+    }
+    else {
+        echo "\nERROR: could not prepare SQL statement: ";
+    }
+ }
+ else {
+    echo "<script language='javascript'>";
+    echo "var gv_new_req_id = '';";
+    echo "</script>";
+ }
+?>
 	  <div class="form_container container_12" id="divheadtitle">
 	    <br><br>
 	    <center>
@@ -101,6 +145,12 @@ session_start();
 		<tr>
 		  <td>
 		    <input type="button" id="btnViewDetails" name="btnViewDetails" value="View Details" />
+		  </td>
+		  <td>
+		    <input type="button" id="btnprocessreq" name="btnprocessreq" value="Process Request" />
+		  </td>
+		  <td>
+		    <input type="button" id="btnassignreq" name="btnassignreq" value="Assign Request" />
 		  </td>
 		</tr>
 	    </table>
@@ -181,7 +231,7 @@ session_start();
 		
 		<tr>
 		  <td>
-		      <div class="clstblelmsTop clslabelbg">Stakeholder Sign Off</div>
+		      <div class="clstblelmsTop clslabelbg">Stakeholder</div>
 			  <table class="clstblelms">
 			    
 			    <tr>
@@ -199,10 +249,23 @@ session_start();
 		<tr class="clsbdrbtm"> <td> &nbsp; </td> </tr>
 		
 		<tr>
-		  <td style="width: 100%; float: right;">
-		    <input type="button" id="btnclose" name="btnclose" value="Close" onclick="fn_close_details();" />
+		  <td>
+		      <div class="clstblelmsTop clslabelbg">Executives</div>
+			  <table class="clstblelms">
+			    
+			    <tr>
+			      <td>&nbsp;&nbsp;</td>
+			      <td class="clstdlblsbhd"><div class="labelsubheading">Executives: </div></td>
+			      <td>
+				<div id="executives" name="executives"></div>
+			      </td>
+			    </tr>
+			    
+			  </table>
 		  </td>
 		</tr>
+		
+		<tr class="clsbdrbtm"> <td> &nbsp; </td> </tr>
 		
 	      </table>
 	  </div>
@@ -210,60 +273,65 @@ session_start();
 <!--  End of Div Templates	  -->
           <script language="Javascript">
 	  $(document).ready( function() {
+	    
+	    if ( gv_new_req_id != undefined ) {
+	      document.getElementById('txtrqid').value = gv_new_req_id;
+	    }
+	    
+	    var gv_user_id = "<?php echo $_SESSION["UserId"]; ?>";
+	    
 	    $( "#txtrqdate" ).datepicker( {dateFormat : "dd/mm/yy" });
 	    $( "#txtexpcompdate" ).datepicker( {dateFormat : "dd/mm/yy" });
             var lv_grdPnlReqReg = "";
 	    var lv_detailsWin = "";
 	    
-	      //Populate 
-	      $.post(
-		"ajax_funcs.php",
-		{
-                  method: "get_wkrq_list"
-                },
-		function ( v_data, v_status ) {
-                  var lv_data = $.parseJSON( v_data );
-                  var lv_data_json = JSON.stringify( lv_data.items );
-                  
-		    lv_grdPnlReqReg = new gridPanel({
-                        id: "grdPnlReqReg",
-                        height: 343,
-			width: 843,
-                        container_id: "divReqReg",
-                        headers:  [{
-                            headerText: 'Request ID',
-                            width: 43,
-                            dataIndex: 'wr_id'
-                          },{
-                            headerText: 'Request Date',
-                            width: 73,
-                            dataIndex: 'wr_date'
-                          },{
-                            headerText: 'Exp. Comp. Date',
-                            width: 83,
-                            dataIndex: 'wr_exptd_date_completion'
-                          },{
-                            headerText: 'Created By',
-                            width: 83,
-                            dataIndex: 'rqstr_name'
-                          },{
-                            headerText: 'Titile',
-                            width: 93,
-                            dataIndex: 'wr_title'
-                          },{
-                            headerText: 'IT Staff Consulted',
-                            width: 83,
-                            dataIndex: 'it_staff_name'
-                          },{
-                            headerText: 'Status',
-                            width: 83,
-                            dataIndex: 'wr_status'
-                          }
-                        ],
-                        data: lv_data_json
-                    });
-		}
-	      );
+	    var lv_grdReqRegDataStore = new dataStore({
+	      url: '/itwr/ajax_funcs/get_wkrq_list',
+	      root: 'items',
+	      fields: ['wr_id','wr_date','wr_exptd_date_completion','rqstr_name','wr_title','it_staff_name','wr_status'],
+	      exParams: { sortCol: 'wr_date', sortOrder: 'asc' }
+	    });
+	    lv_grdReqRegDataStore.load();
+	    
+	      //Grid
+		lv_grdPnlReqReg = new gridPanel({
+		    id: "grdPnlReqReg",
+		    height: 343,
+		    width: 843,
+		    container_id: "divReqReg",
+		    store: lv_grdReqRegDataStore,
+		    headers:  [{
+			headerText: 'Req. #',
+			width: 43,
+			dataIndex: 'wr_id'
+		      },{
+			headerText: 'Request Date',
+			width: 73,
+			dataIndex: 'wr_date'
+		      },{
+			headerText: 'Exp. Comp. Date',
+			width: 83,
+			dataIndex: 'wr_exptd_date_completion'
+		      },{
+			headerText: 'Created By',
+			width: 83,
+			dataIndex: 'rqstr_name'
+		      },{
+			headerText: 'Titile',
+			width: 93,
+			dataIndex: 'wr_title'
+		      },{
+			headerText: 'IT Staff Consulted',
+			width: 83,
+			dataIndex: 'it_staff_name'
+		      },{
+			headerText: 'Status',
+			width: 83,
+			dataIndex: 'wr_status'
+		      }
+		    ]
+		});
+		lv_grdPnlReqReg.render();
 	      
 	      //For Status Select option
 	      var lv_status_data = [
@@ -283,40 +351,26 @@ session_start();
 		defaultSelectedValue: 1,
 		data: lv_status_data_json
 	      });
-	      lv_cmbStatus.render();
 	      
 	      //Refresh Grid
 	      fn_refreshReqGrid = function() {
-		  $.post(
-		    "ajax_funcs.php",
-		    {
-		      method: "get_wkrq_list",
-		      params: {
+		
+		  lv_grdPnlReqReg.store.baseParams = {
 			wr_id: $( "#txtrqid" ).val(),
 			wr_date: $( "#txtrqdate" ).val(),
 			wr_exptd_date_completion: $( "#txtexpcompdate" ).val(),
 			rqstr_name: $( "#txtcreatedby" ).val(),
 			wr_title: $( "#txttitle" ).val(),
 			wr_status: $( "#cmbStatus" ).val()
-		      }
-		    },
-		    function ( v_data, v_status ) {
-		      var lv_data = $.parseJSON( v_data );
-		      var lv_data_json = JSON.stringify( lv_data.items );
-		      if( lv_grdPnlReqReg != "" ) {
-			lv_grdPnlReqReg.refreshGrid( lv_data_json );
-		      }
-		      
-		    }
-		  ); 
+		  };
+		  lv_grdPnlReqReg.refreshGrid();
 	      }
 	      fn_refreshReqGrid();
 	      
 	      //Search button Click event
 	      $( "#btnsearch" ).on( 'click', fn_refreshReqGrid );
 	      
-	      //Get Details of Selected Row
-	      $( "#btnViewDetails" ).on( 'click', function() {
+	      fn_viewRequestDetails = function() {
 		var lv_selectedRow = null;
 		if( lv_grdPnlReqReg != "" ) {
 		  lv_selectedRow = lv_grdPnlReqReg.getSelectedRow();
@@ -325,23 +379,162 @@ session_start();
 		    fn_alert( "Information!", "Please select at least one record." );
 		  }
 		  else {
-		    lv_detailsWin = new windowPanel({
-		      id: 'winDetails',
-		      width: 820,
-		      data: lv_selectedRow,
-		      elementsDiv_id: "divDetailsWin",
-		      title: "Details",
-		      masked: true
-		    });
-		    lv_detailsWin.render();
-		    lv_detailsWin.show();
+		    //Get Executives
+		    var lv_selectedRow_arry = $.parseJSON( lv_selectedRow );
+		    $.post(
+		      "ajax_funcs.php",
+		      {
+			method: "getExecutiveList",
+			params: { wr_id: lv_selectedRow_arry.wr_id }
+		      },
+		      function ( v_data, v_status ) {
+			var lv_data = $.parseJSON( v_data );
+			var lv_excu_names_arry = [];
+			var lv_excu_ids_arry = [];
+			$.each( lv_data.items, function( v_idx, v_val ){
+			  lv_excu_names_arry.push( v_val.name );
+			  lv_excu_ids_arry.push( v_val.id );
+			});
+			var lv_excu_names = '';
+			lv_excu_names = lv_excu_names_arry.join(", ");
+			var lv_excu_ids = '';
+			lv_excu_ids = JSON.stringify( lv_excu_ids_arry );
+			fn_setCookie( 'excu_ids', lv_excu_ids );
+			var lv_executives = $("#executives").html( lv_excu_names );
+		    
+		    //Prepare Window to be displayed with Details
+			  lv_detailsWin = new windowPanel({
+			    id: 'winDetails',
+			    width: 820,
+			    data: lv_selectedRow,
+			    elementsDiv_id: 'divDetailsWin',
+			    title: 'Details',
+			    masked: true,
+			    buttons: [{
+			      id: 'btnclosedetails',
+			      text: 'Close',
+			      handler: function() {
+				lv_detailsWin.hide();
+			      }
+			    }]
+			  });
+			  lv_detailsWin.render();
+			  lv_detailsWin.show();
+		      }
+		    );
+		  }
+		}
+	      }
+	      
+	      fn_saveProcessStatus = function() {
+		
+	      }
+	      
+	      fn_processRequest = function() {
+		var lv_processReqWin = new windowPanel({
+		  id: 'processReqWinId',
+		  width: 343,
+		  elementsDiv_id: 'divProcessReqWin',
+		  title: 'Process Request',
+		  masked: true,
+		  buttons: [{
+		    id: 'btnsaveprstatus',
+		    text: 'Save',
+		    handler: function() {
+		      fn_saveProcessStatus();
+		    }
+		  },{
+		    id: 'btncancelprsave',
+		    text: 'Cancel',
+		    handler: function() {
+		      lv_processReqWin.hide();
+		    }
+		  }]
+		});
+		lv_processReqWin.render();
+		lv_processReqWin.show();
+	      }
+	      
+	      lv_grdPnlReqReg.on( 'dblclick', fn_viewRequestDetails );
+	      
+	      //Get Details of Selected Row
+	      $( "#btnViewDetails" ).on( 'click', function() {
+		fn_viewRequestDetails();
+	      });
+	      
+	      $( "#btnprocessreq" ).on( 'click', function() {
+		var lv_selectedRow = null;
+		if( lv_grdPnlReqReg != "" ) {
+		  lv_selectedRow = lv_grdPnlReqReg.getSelectedRow();
+		  
+		  if ( lv_selectedRow == null ) {
+		    fn_alert( "Information!", "Please select at least one record." );
+		  }
+		  else {
+		    
+		    //Get Executives
+		    var lv_selectedRow_arry = $.parseJSON( lv_selectedRow );
+		    
+		    //Commented out but in future Stake Holder might Approve / Reject requests ****Do not delete****
+		//    if( ( lv_selectedRow_arry.wr_stake_hldr_id ) && ( lv_selectedRow_arry.wr_stake_hldr_id == gv_user_id ) ) {
+		//	if( lv_selectedRow_arry.stake_hldr_status != '1' ) {
+		//	  fn_alert( "Information!", "You have already processed this Request! <br>Request Status: " + lv_selectedRow_arry.wr_stake_hldr_status );
+		//	}
+		//	else {
+		//	  fn_alert( "Information!", "Request Status: " + lv_selectedRow_arry.wr_stake_hldr_status );
+		//	}
+		//    }
+		//    else {
+		      $.post(
+			"ajax_funcs.php",
+			{
+			  method: "getExecutiveList",
+			  params: { wr_id: lv_selectedRow_arry.wr_id, usr_id: true }
+			},
+			function ( v_data, v_status ) {
+			  var lv_data = $.parseJSON( v_data );
+			  var lv_user_data = {};
+			  lv_user_data = fn_search_array_by_val( lv_data, gv_user_id );
+			  
+		      //As per Authorization approve Request
+			  
+			  if( lv_user_data ) {
+			    if( lv_user_data.ex_status != '1' ) {
+			      fn_alert( "Information!", "You have already processed this Request! <br>Request Status: " + lv_user_data.es_status );
+			    }
+			    else {
+			      fn_alert( "Information!", "Request Status: " + lv_user_data.es_status );
+			    }
+			  }
+			  else {
+			    fn_alert( "Information!", "You are NOT authorized to process this request!" );
+			  }
+			}
+		      );
+		    //}
 		  }
 		}
 	      });
 	      
-	      fn_close_details = function() {
-		lv_detailsWin.hide();
-	      }
+	      $( "#btnassignreq" ).on( 'click', function() {
+		var lv_selectedRow = null;
+		var lv_assign_req_check = "<?php echo $_SESSION['usr_auth_assign_req']; ?>";
+		if( lv_grdPnlReqReg != "" ) {
+		  lv_selectedRow = lv_grdPnlReqReg.getSelectedRow();
+		  
+		  if ( lv_selectedRow == null ) {
+		    fn_alert( "Information!", "Please select at least one record." );
+		  }
+		  else {
+		    if ( lv_assign_req_check == "1" ) {
+		      fn_alert( "Information!", "Success!" );
+		    }
+		    else {
+		      fn_alert( "Information!", "You are NOT authorized to assign requests!" );
+		    }
+		  }
+		}
+	      });
 	  });
 	</script>
         </body>
