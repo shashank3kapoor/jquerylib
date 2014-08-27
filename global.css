@@ -15,5 +15,9 @@ div.clsgrdheader table { font-size:12px; FONT-FAMILY: Arial; text-decoration: un
 div.clsgrddata { overflow-y: scroll; }
 div.clsgrddata table { font-size:12px; FONT-FAMILY: Arial; border-collapse:collapse; border:1px solid grey; }
 div.clswintitle { font-size:12px; FONT-FAMILY: Arial; text-decoration: underline; background-color:#f3f3f3; border-bottom: 1px solid grey; }
+th.clsgrdheaderth { cursor: pointer; }
+th.clsgrdheaderasc span.clsgrdheaderimg { background-image: url('/images/SeqUp.jpg'); position: relative; float: left; }
+th.clsgrdheaderdesc span.clsgrdheaderimg { background-image: url('/images/SeqDown.jpg'); position: relative; float: left; }
+th span.clsgrdheadertxt { position: relative; float: left; margin-left: 3px; }
 td.clsalertbtn, td.clsalerttxttd { text-align: center; font-size:12px; FONT-FAMILY: Arial; }
 .clsselected td { background-color: lightblue; }
