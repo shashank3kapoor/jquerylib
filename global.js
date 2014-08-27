@@ -8,7 +8,58 @@
 
 $(document).ready( function() {
 
-/*****Cod for GridPanel****/  
+/*****Code for DataStore****/
+  //Consturctor Method
+  dataStore = function( v_params ) {
+    this.root = v_params.root;
+    this.url = v_params.url;
+    this.fields = v_params.fields;
+    this.baseParams = ( v_params.baseParams ) ? v_params.baseParams : false;
+    this.exParams = ( v_params.exParams ) ? v_params.exParams : false;
+    
+    return this;
+  }
+  
+  dataStore.prototype.load = function() {
+    var _this = this;
+    
+    var lv_url_arry = _this.url.split("/");
+    var lv_method = lv_url_arry.pop();
+    var lv_frst_char = _this.url.substr(0,1);
+    var lv_url = "";
+    if ( lv_frst_char != "/" ) {
+      lv_url = "/" + lv_url_arry[0];
+    }
+    else {
+      
+    }
+    
+    for(var i=1; i<lv_url_arry.length; i++) {
+      lv_url = lv_url + "/" + lv_url_arry[i];
+    }
+    
+    lv_url = lv_url + ".php";
+    
+    _this.callurl = lv_url;
+    _this.method = lv_method;
+    
+    _this.data = false;
+    $.post(
+      lv_url,
+      {
+	method: lv_method,
+	params: _this.baseParams,
+	exParams: _this.exParams
+      },
+      function ( v_data, v_status ) {
+	var lv_data = $.parseJSON( v_data );
+	_this.data = JSON.stringify( lv_data[_this.root] );
+      }
+    );
+    
+  }
+
+/*****Code for GridPanel****/  
   //Constructor Method
   gridPanel = function( v_params ) {
     this.id = v_params.id;
@@ -16,7 +67,9 @@ $(document).ready( function() {
     this.height = (v_params.height) ? v_params.height : "auto";
     this.container_id = v_params.container_id;
     this.headers = v_params.headers;
-    this.data = v_params.data;
+    this.store = (v_params.store) ? v_params.store : false;
+    this.data = (v_params.data) ? v_params.data : false;
+    this.reloading = false;
     
     return this;
   }
@@ -24,6 +77,40 @@ $(document).ready( function() {
   //Rendering Grid
   gridPanel.prototype.render = function() {
     var _this = this;
+    
+    //Load data when store specified
+    if( _this.store ) {
+      _this.store.load();
+      if( ( _this.store.data ) && ( !_this.reloading ) ) {
+	_this.data = _this.store.data;
+	fn_render_grid( _this );
+      }
+      else {
+	$.post(
+	  _this.store.callurl,
+	  {
+	    method: _this.store.method,
+	    params: _this.store.baseParams,
+	    exParams: _this.store.exParams
+	  },
+	  function ( v_data, v_status ) {
+	    var lv_data = $.parseJSON( v_data );
+	    _this.data = JSON.stringify( lv_data[_this.store.root] );
+	    
+	    fn_render_grid( _this );
+	  }
+	);
+      }
+      
+    }
+    else {
+      fn_render_grid( _this );
+    }
+  }
+  
+  fn_render_grid = function( v_this ) {
+    var _this = v_this;
+    
     var lv_div = document.getElementById( _this.container_id );      //Container DIV element
     lv_div.innerHTML = "";
     if( $.isNumeric( _this.width ) ) {
@@ -52,13 +139,75 @@ $(document).ready( function() {
     
     var lv_header = _this.headers;
     
+    var lv_default_sort_col = false;
+    var lv_default_sort_order = 'asc';
+    if( _this.store.exParams.sortCol ) {
+      lv_default_sort_col = _this.store.exParams.sortCol;
+      lv_default_sort_order = ( _this.store.exParams.sortOrder ) ? _this.store.exParams.sortOrder : 'asc';
+    }
+    
     $.each( lv_header, function( v_idx, v_val ) {
       var lv_th = document.createElement("th");   //Creating Header Values
+      var lv_span_img = document.createElement("span");
+      var lv_span_txt = document.createElement("span");
+      var lv_a_link = document.createElement("a");
+      var lv_hdr_col_tbl = document.createElement("table");
+      var lv_hdr_col_tr = document.createElement("tr");
+      var lv_hdr_col_td_img = document.createElement("td");
+      var lv_hdr_col_td_txt = document.createElement("td");
+      
+      lv_span_img.style.width = "13px";
+      lv_span_img.style.height = "13px";
+      lv_span_img.className = "clsgrdheaderimg";
+      lv_span_txt.className = "clsgrdheadertxt";
+      lv_span_txt.innerHTML = v_val.headerText;
+      
+      lv_hdr_col_td_img.appendChild( lv_span_img );
+      lv_hdr_col_td_txt.appendChild( lv_span_txt );
+      lv_hdr_col_tr.appendChild( lv_hdr_col_td_txt );
+      lv_hdr_col_tr.appendChild( lv_hdr_col_td_img );
+      lv_hdr_col_tbl.appendChild( lv_hdr_col_tr );
+      
+      lv_a_link.appendChild( lv_hdr_col_tbl );
       
       lv_th.width = v_val.width;
-      lv_th.innerHTML = v_val.headerText;
+      lv_th.style.className = "clsgrdheaderth";
+      lv_th.id = v_val.dataIndex;
+      
+      if( ( lv_default_sort_col ) && ( lv_default_sort_col == v_val.dataIndex ) ) {
+	if( lv_default_sort_order == 'asc' ) {
+	  $(lv_th).addClass("clsgrdheaderasc");
+	}
+	else {
+	  $(lv_th).addClass("clsgrdheaderdesc");
+	}
+      }
+      
+      lv_th.appendChild( lv_a_link );
       
       lv_tr.appendChild( lv_th );   //Add Table header element to row
+    });
+    
+    //For Sorting by a column
+    $( lv_tr ).delegate("th", "click", function(e) {
+      var lv_th_className = this.className;
+      var lv_sortOrder = "asc";
+      
+      if( ( lv_th_className ) && ( lv_th_className == "clsgrdheaderasc" ) ) {
+	$(this).addClass("clsgrdheaderdesc").removeClass("clsgrdheaderasc").siblings().removeClass();
+	lv_sortOrder = "desc";
+      }
+      else {
+	$(this).addClass("clsgrdheaderasc").removeClass("clsgrdheaderdesc").siblings().removeClass();
+	lv_sortOrder = "asc";
+      }
+      
+      _this.store.exParams = {
+	    sortCol: this.id,
+	    sortOrder: lv_sortOrder
+      };
+      _this.sortGrid();
+      
     });
     
     lv_header_table.appendChild( lv_tr ); //Add row to header Table
@@ -67,9 +216,10 @@ $(document).ready( function() {
     //Populate Data into the Grid
     var lv_data_div = document.createElement("div"); //Grid Data DIV
     lv_data_div.className = "clsgrddata";
+    lv_data_div.id = _this.container_id + "_datadiv";
     
     if( $.isNumeric( _this.height ) ) {
-      lv_data_div.style.height = (_this.height - 23) + "px";
+      lv_data_div.style.height = (_this.height - 30) + "px";
     }
     else {
       lv_data_div.style.height = _this.height;
@@ -116,14 +266,95 @@ $(document).ready( function() {
     _this.headerTable = lv_header_table;
     _this.dataContainer = lv_data_div;
     _this.dataTable = lv_data_table;
+    
+    if( _this.v_event ) {
+      fn_assign_grid_event( _this, _this.v_event, _this.v_fun );
+    }
   }
   
   //Refresh Grid
   gridPanel.prototype.refreshGrid = function( v_data ) {
-    this.data = v_data;
-    this.render();
-    this.selectedRowIndex = null;
-    this.selectedRow = null;
+    var _this = this;
+    _this.reloading = true;
+    
+    if ( v_data != undefined ) {
+      _this.data = v_data;
+      _this.reloading = false;
+    }
+    _this.render();
+    _this.selectedRowIndex = null;
+    _this.selectedRow = null;
+  }
+  
+  //Sort Grid
+  gridPanel.prototype.sortGrid = function() {
+    var _this = this;
+    
+    //Load data as per sorted column
+      $.post(
+	_this.store.callurl,
+	{
+	  method: _this.store.method,
+	  params: _this.store.baseParams,
+	  exParams: _this.store.exParams
+	},
+	function ( v_data, v_status ) {
+	  var lv_data = $.parseJSON( v_data );
+	  _this.data = JSON.stringify( lv_data[_this.store.root] );
+	  
+	  //Populate Data into the Grid
+	  var lv_data_div = document.getElementById( _this.container_id + "_datadiv" ); //Grid Data DIV
+	  lv_data_div.innerHTML = "";
+	  lv_data_div.className = "clsgrddata";
+	  
+	  if( $.isNumeric( _this.height ) ) {
+	    lv_data_div.style.height = (_this.height - 23) + "px";
+	  }
+	  else {
+	    lv_data_div.style.height = _this.height;
+	  }
+	  
+	  var lv_data_table = document.createElement("table");  //Data Table
+	  lv_data_table.width = "100%";
+	  lv_data_table.border = 1;
+	  lv_data_table.setAttribute( "id", _this.container_id + "_data");
+	  
+	  var lv_data = $.parseJSON( _this.data );
+	  var lv_header = _this.headers;
+	  
+	  $.each( lv_data, function( v_data_idx, v_data_val ) {
+	    var lv_data_tr = document.createElement("tr");      //Data Row
+	    
+	    //Check position of Data values
+	      $.each( lv_header, function( v_idx, v_val ) {
+		var lv_td = document.createElement("td");   //Creating data Values
+		
+		lv_td.width = v_val.width;
+		lv_td.innerHTML = v_data_val[v_val.dataIndex];
+		
+		lv_data_tr.appendChild( lv_td );   //Add Table data element to row
+	      });
+	      
+	      lv_data_table.appendChild( lv_data_tr );   //Add data row to Table
+	  });
+	  
+	  _this.selectedRowIndex = null;
+	  $( lv_data_table ).delegate("tr", "click", function(e) {
+	      $(this).addClass("clsselected").siblings().removeClass("clsselected");
+	      _this.selectedRowIndex = $(this).index();
+	      _this.selectedRow = (_this.selectedRowIndex != null) ? JSON.stringify(lv_data[_this.selectedRowIndex]) : null;
+	  });
+	  
+	  lv_data_div.appendChild( lv_data_table ); //Add Table to the Data DIV
+	  
+	  _this.dataContainer = lv_data_div;
+	  _this.dataTable = lv_data_table;
+	  
+	  if( _this.v_event ) {
+	    fn_assign_grid_event( _this, _this.v_event, _this.v_fun );
+	  }
+	}
+      );
   }
   
   gridPanel.prototype.getSelectedRowIndex = function() {
@@ -132,6 +363,26 @@ $(document).ready( function() {
   
   gridPanel.prototype.getSelectedRow = function() {
     return this.selectedRow;
+  }
+  
+  fn_assign_grid_event = function( v_this, v_event, v_fun ) {
+    var _this = v_this;
+    
+    $( _this.dataTable ).find("tr").bind( v_event, v_fun );
+  }
+  
+  gridPanel.prototype.on = function( v_event, v_fun ) {
+    var _this = this;
+    
+    _this.v_event = v_event;
+    _this.v_fun = v_fun;
+    
+    if( _this.dataTable == undefined ) {
+      _this.render();
+    }
+    else {
+      fn_assign_grid_event( _this, v_event, v_fun );
+    }
   }
   
   /*****End of code for GridPanel****/
@@ -214,7 +465,8 @@ $(document).ready( function() {
     this.title = (v_params.title) ? v_params.title : "";
     this.elementsDiv_id = v_params.elementsDiv_id;
     this.masked = (v_params.masked) ? v_params.masked : false;
-    this.data = v_params.data;
+    this.data = (v_params.data) ? v_params.data : false;
+    this.buttons = (v_params.buttons) ? v_params.buttons : false;
     
     return this;
   }
@@ -283,7 +535,9 @@ $(document).ready( function() {
     lv_divWinElms.innerHTML = $( "#" + _this.elementsDiv_id ).html();
     
     //Assign values to the elements
-    fn_assignValues_to_window( lv_divWinElms, _this.data );
+    if( _this.data ) {
+      fn_assignValues_to_window( lv_divWinElms, _this.data );
+    }
     
     if( _this.masked ) {
       fn_removeChildElem( "maskDiv" + _this.id );
@@ -305,7 +559,26 @@ $(document).ready( function() {
     lv_tr_body.appendChild( lv_td_body );
     lv_table.appendChild( lv_tr_body );
     
-    lv_divWinObj.appendChild( lv_table );
+    //Buttons
+    var lv_btns_table = document.createElement("table");
+    var lv_btns_tr = document.createElement("tr");
+    if( _this.buttons ) {
+      var lv_buttons_arry = _this.buttons;
+      
+      $.each( lv_buttons_arry, function( v_idx, v_val ) {
+	var lv_btns_td = document.createElement("td");
+	var lv_btn = fn_attachHandler( 'button', v_val );
+	
+	lv_btns_td.appendChild( lv_btn );
+	lv_btns_tr.appendChild( lv_btns_td );
+      });
+    }
+    lv_btns_table.appendChild( lv_btns_tr );
+    //End of code for buttons
+    
+    lv_divWinObj.appendChild( lv_table );  //Window Body
+    lv_divWinObj.appendChild( lv_btns_table );   //Buttons
+    
     lv_divWinObjCont.appendChild( lv_divWinObj );
     
     _this.winObj = lv_divWinObjCont;
@@ -524,4 +797,73 @@ $(document).ready( function() {
       
     }
   }
+  
+  fn_setCookie = function( name, value, days ) {
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime()+(days*24*60*60*1000));
+        var expires = "; expires="+date.toGMTString();
+    }
+    else var expires = "";
+    document.cookie = name+"="+value+expires+"; path=/";
+  }
+  
+  fn_getCookie = function( name ) {
+      var nameEQ = name + "=";
+      var ca = document.cookie.split(';');
+      for(var i=0;i < ca.length;i++) {
+	  var c = ca[i];
+	  while (c.charAt(0)==' ') c = c.substring(1,c.length);
+	  if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+      }
+      return null;
+  }
+  
+  fn_deleteCookie = function( name ) {
+      setCookie(name,"",-1);
+  }
+  
+  fn_search_array_by_val = function ( v_srchArry, v_srchVal ) {
+    var lv_retArry = v_srchArry;
+    var lv_found = false;
+    for(var i in v_srchArry ) {
+      if( ( $.isArray(v_srchArry[i]) ) || ( typeof v_srchArry[i] == 'object' ) ) {
+	lv_retArry = fn_search_array_by_val( v_srchArry[i], v_srchVal );
+	lv_found = lv_retArry;
+      }
+      else if( v_srchArry[i] === v_srchVal ) {
+	  lv_found = true;
+	  break;
+      }
+    }
+      
+      if( lv_found ) {
+	return lv_retArry;
+      }
+      else {
+	return false;
+      }
+  }
+  
+  fn_attachHandler = function( v_type, v_config ) {
+    var lv_obj = false;
+      switch( v_type ) {
+	case "button":
+	  lv_obj = document.createElement("input");
+	  lv_obj.type = "button";
+	  lv_obj.id = v_config.id;
+	  lv_obj.value = v_config.text;
+	  break;
+	
+	default:
+	  lv_obj = document.createElement("div");
+      }
+      
+      if( ( lv_obj ) && ( v_config.handler ) && ( typeof v_config.handler == "function" ) ) {
+	lv_obj.onclick = v_config.handler;
+      }
+      
+      return lv_obj;
+  }
+  
 });
