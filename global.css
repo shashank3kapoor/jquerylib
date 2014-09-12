@@ -12,12 +12,33 @@ button, input[type="button"] { height: 20px; BORDER-RIGHT: #999999 1px solid; BO
 div.clsgrdcontainer { overflow: hidden; border: 1px solid grey; }
 div.clsgrdheader { overflow: hidden; }
 div.clsgrdheader table { font-size:12px; FONT-FAMILY: Arial; text-decoration: underline; background-color:#f3f3f3; }
+div.clsgrdheader th table tr td { white-space: nowrap; overflow: hidden; }
 div.clsgrddata { overflow-y: scroll; }
 div.clsgrddata table { font-size:12px; FONT-FAMILY: Arial; border-collapse:collapse; border:1px solid grey; }
 div.clswintitle { font-size:12px; FONT-FAMILY: Arial; text-decoration: underline; background-color:#f3f3f3; border-bottom: 1px solid grey; }
-th.clsgrdheaderth { cursor: pointer; }
-th.clsgrdheaderasc span.clsgrdheaderimg { background-image: url('/images/SeqUp.jpg'); position: relative; float: left; }
-th.clsgrdheaderdesc span.clsgrdheaderimg { background-image: url('/images/SeqDown.jpg'); position: relative; float: left; }
+th.clsgrdheaderasc span.clsgrdheaderimg { background-image: url('/itwr/images/up.png'); position: relative; float: left; }
+th.clsgrdheaderdesc span.clsgrdheaderimg { background-image: url('/itwr/images/down.png'); position: relative; float: left; }
 th span.clsgrdheadertxt { position: relative; float: left; margin-left: 3px; }
 td.clsalertbtn, td.clsalerttxttd { text-align: center; font-size:12px; FONT-FAMILY: Arial; }
-.clsselected td { background-color: lightblue; }
+.clsselected td { background-color: lightblue; cursor: url('/itwr/images/curnw.cur'), pointer; }
+div.clsgrdpagcont { overflow: hidden; border: 1px solid #999999; }
+div.clsgrdpagcont table { font-size:12px; FONT-FAMILY: Arial; }
+td.clspgfst { width: 27px; height: 20px; }
+td.clspgpre { width: 20px; height: 20px; }
+td.clspgnxt { width: 20px; height: 20px; }
+td.clspglst { width: 20px; height: 20px; }
+td.clspgfst div { background-image: url('/itwr/images/first.png'); background-repeat: no-repeat; height: 14px; width: 14px; margin-left: 7px; margin: 1px; background-position: 0px; }
+td.clspgpre div { background-image: url('/itwr/images/previous.png'); background-repeat: no-repeat; height: 14px; width: 9px; margin: 1px; background-position: 0px; }
+td.clspgnxt div { background-image: url('/itwr/images/next.png'); background-repeat: no-repeat; height: 14px; width: 9px; margin: 1px; background-position: 0px; }
+td.clspglst div { background-image: url('/itwr/images/last.png'); background-repeat: no-repeat; height: 14px; width: 14px; margin: 1px; background-position: 0px; }
+td.clspgfst.clspgfstdsbl div { background-position: -14px; }
+td.clspgpre.clspgpredsbl div { background-position: -9px; }
+td.clspgnxt.clspgnxtdsbl div { background-position: -9px; }
+td.clspglst.clspglstdsbl div { background-position: -14px; }
+td.clspgfst:hover, td.clspgpre:hover, td.clspgnxt:hover, td.clspglst:hover { cursor: pointer; }
+td.clspgfst:hover.clspgfstdsbl, td.clspgpre:hover.clspgpredsbl, td.clspgnxt:hover.clspgnxtdsbl, td.clspglst:hover.clspglstdsbl { cursor: default; }
+td.clspgfst:hover div, td.clspgpre:hover div, td.clspgnxt:hover div, td.clspglst:hover div { box-shadow: 0px 0px 2px 2px #999999; -webkit-box-shadow: 0px 0px 2px 2px #999999; -moz-box-shadow: 0px 0px 2px 2px #999999; }
+td.clspgfst:hover.clspgfstdsbl div, td.clspgpre:hover.clspgpredsbl div, td.clspgnxt:hover.clspgnxtdsbl div, td.clspglst:hover.clspglstdsbl div { box-shadow: none; -webkit-box-shadow: none; }
+td.clscurrpage { text-align: right; width: 143px; }
+td.clscurrpage input { width: 43px; text-align: right; }
+td.clspagoftxt { text-align: left; }
