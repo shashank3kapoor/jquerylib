@@ -7,14 +7,17 @@
 	******************************************************************************************************
 */
 session_start();
-  include_once "db_con.php";
-  include_once "incl_funcs.php";
 
   $method = ( isset( $_POST["method"] ) ) ? "fn_".$_POST["method"] : null;
   $params = ( isset( $_POST["params"] ) ) ? $_POST["params"] : array();
   $exParams = ( isset( $_POST["exParams"] ) ) ? $_POST["exParams"] : array();
-  if( !empty($exParams) ) {
-    $params = array_merge( $params, $exParams );
+  if( $exParams != 'false' ) {
+    if( $params != 'false' ) {
+      $params = array_merge( $params, $exParams );
+    }
+    else {
+      $params = $exParams;
+    }
   }
   
   if( is_callable( $method ) ) {
