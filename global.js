@@ -52,7 +52,7 @@ $(document).ready( function() {
 	_this.data = JSON.stringify( lv_data[_this.root] );
 	
 	if( _this.totalProperty ) {
-	  _this.store.totalValue = JSON.stringify( lv_data[_this.totalProperty] );
+	  _this.store.totalValue = parseInt( lv_data[_this.totalProperty] );
 	}
 	else {
 	  _this.store.totalValue = false;
@@ -78,6 +78,8 @@ $(document).ready( function() {
     this.currentPageNo = 1;
     this.pageOffset = 0;
     this.listeners = (v_params.listeners) ? v_params.listeners : false;
+    this.selectedRowIndex = null;
+    this.selectedRow = null;
     
     return this;
   }
@@ -125,7 +127,7 @@ $(document).ready( function() {
 	    _this.store.data = _this.data;
 	    
 	    if( _this.store.totalProperty ) {
-	      _this.store.totalValue = JSON.stringify( lv_data[_this.store.totalProperty] );
+	      _this.store.totalValue = parseInt( lv_data[_this.store.totalProperty] );
 	    }
 	    else {
 	      _this.store.totalValue = false;
@@ -218,7 +220,7 @@ $(document).ready( function() {
       lv_a_link.appendChild( lv_hdr_col_tbl );
       
       lv_th.style.width = v_val.width + "px";
-      lv_th.style.cursor = "url('/itwr/images/curnw.cur'), pointer";
+      lv_th.style.cursor = "url('/images/curnw.cur'), pointer";
       lv_th.id = v_val.dataIndex;
       
       if( ( lv_default_sort_col ) && ( lv_default_sort_col == v_val.dataIndex ) ) {
@@ -287,7 +289,6 @@ $(document).ready( function() {
     
     $.each( lv_data, function( v_data_idx, v_data_val ) {
       var lv_data_tr = document.createElement("tr");      //Data Row
-      //lv_data_tr.setAttribute("data-rowid", v_data_idx );
       
       //Check position of Data values
         $.each( lv_header, function( v_idx, v_val ) {
@@ -295,6 +296,11 @@ $(document).ready( function() {
           
           lv_td.style.width = v_val.width + "px";
           lv_td.innerHTML = v_data_val[v_val.dataIndex];
+	  
+	  //Renderer
+	  if( typeof v_val.renderer === 'function' ) {
+	    lv_td = v_val.renderer( lv_td, v_data_val, v_data_val[v_val.dataIndex] );
+	  }
           
           lv_data_tr.appendChild( lv_td );   //Add Table data element to row
         });
@@ -342,23 +348,31 @@ $(document).ready( function() {
     var lv_page_td_next = document.getElementById( _this.container_id + "_navnext" );
     var lv_page_td_last = document.getElementById( _this.container_id + "_navlast" );
     
-    if( v_counter <= 1 ) {
-      lv_page_td_first.className = "clspgfst clspgfstdsbl";
-      lv_page_td_previous.className = "clspgpre clspgpredsbl";
-      lv_page_td_next.className = "clspgnxt";
-      lv_page_td_last.className = "clspglst";
-    }
-    else if( v_counter >= parseInt( _this.pageCount ) ) {
-      lv_page_td_first.className = "clspgfst";
-      lv_page_td_previous.className = "clspgpre";
-      lv_page_td_next.className = "clspgnxt clspgnxtdsbl";
-      lv_page_td_last.className = "clspglst clspglstdsbl";
+    if( _this.pageCount >= 1 ) {
+      if( v_counter <= 1 ) {
+	lv_page_td_first.className = "clspgfst clspgfstdsbl clsbtndsbl";
+	lv_page_td_previous.className = "clspgpre clspgpredsbl clsbtndsbl";
+	lv_page_td_next.className = "clspgnxt";
+	lv_page_td_last.className = "clspglst";
+      }
+      else if( v_counter >= parseInt( _this.pageCount ) ) {
+	lv_page_td_first.className = "clspgfst";
+	lv_page_td_previous.className = "clspgpre";
+	lv_page_td_next.className = "clspgnxt clspgnxtdsbl clsbtndsbl";
+	lv_page_td_last.className = "clspglst clspglstdsbl clsbtndsbl";
+      }
+      else {
+	lv_page_td_first.className = "clspgfst";
+	lv_page_td_previous.className = "clspgpre";
+	lv_page_td_next.className = "clspgnxt";
+	lv_page_td_last.className = "clspglst";
+      }
     }
     else {
-      lv_page_td_first.className = "clspgfst";
-      lv_page_td_previous.className = "clspgpre";
-      lv_page_td_next.className = "clspgnxt";
-      lv_page_td_last.className = "clspglst";
+      lv_page_td_first.className = "clspgfst clspgfstdsbl clsbtndsbl";
+      lv_page_td_previous.className = "clspgpre clspgpredsbl clsbtndsbl";
+      lv_page_td_next.className = "clspgnxt clspgnxtdsbl clsbtndsbl";
+      lv_page_td_last.className = "clspglst clspglstdsbl clsbtndsbl";
     }
   }
   
@@ -384,7 +398,12 @@ $(document).ready( function() {
     
     switch( v_btn ) {
       case "first":
-	lv_counter = 1;
+	if( parseInt( _this.pageCount ) >= 1 ) {
+	  lv_counter = 1;
+	}
+	else {
+	  lv_counter = 0;
+	}
 	_this.currentPageNo = lv_counter;
 	_this.sortGrid();
 	break;
@@ -416,7 +435,14 @@ $(document).ready( function() {
   fn_createGridPagingElement = function( v_this ) {
     var _this = v_this;
     var lv_pagcont_div = document.createElement("div"); //Grid paging container
-    
+      
+      if( !_this.store.totalValue ){
+	_this.currentPageNo = 0;
+      }
+      else if( !_this.currentPageNo ) {
+	_this.currentPageNo = 1;
+      }
+      
       lv_pagcont_div.className = "clsgrdpagcont";
       lv_pagcont_div.id = _this.container_id + "_pagecontdiv";
       
@@ -434,10 +460,16 @@ $(document).ready( function() {
       lv_page_td_next.id = _this.container_id + "_navnext";
       lv_page_td_last.id = _this.container_id + "_navlast";
       
-      lv_page_td_first.className = "clspgfst clspgfstdsbl";
-      lv_page_td_previous.className = "clspgpre clspgpredsbl";
-      lv_page_td_next.className = "clspgnxt";
-      lv_page_td_last.className = "clspglst";
+      lv_page_td_first.className = "clspgfst clspgfstdsbl clsbtndsbl";
+      lv_page_td_previous.className = "clspgpre clspgpredsbl clsbtndsbl";
+      if( _this.currentPageNo ) {
+	lv_page_td_next.className = "clspgnxt";
+	lv_page_td_last.className = "clspglst";
+      }
+      else {
+	lv_page_td_next.className = "clspgnxt clspgnxtdsbl clsbtndsbl";
+	lv_page_td_last.className = "clspglst clspglstdsbl clsbtndsbl";
+      }
       
       var lv_page_td_curr_pg = document.createElement("td"); //current page number
 	  lv_page_td_curr_pg.className = "clscurrpage";
@@ -452,6 +484,11 @@ $(document).ready( function() {
       var lv_page_next_div = document.createElement("div"); //next div
       var lv_page_last_div = document.createElement("div"); //last div
       
+      var lv_pageFirstBtnObj = fn_createBtnObj( lv_page_first_div );
+      var lv_pagePreviousBtnObj = fn_createBtnObj( lv_page_previous_div );
+      var lv_pageNextBtnObj = fn_createBtnObj( lv_page_next_div );
+      var lv_pageLastBtnObj = fn_createBtnObj( lv_page_last_div );
+      
       var lv_page_input_page_no = document.createElement("input"); //input page number
       lv_page_input_page_no.id = _this.container_id + "_pgnoinp";
       lv_page_input_page_no.name = _this.container_id + "_pgnoinp";
@@ -464,10 +501,6 @@ $(document).ready( function() {
       lv_page_td_next.onclick = function() { fn_getGrdPage( lv_page_input_page_no, "next", _this ); };
       lv_page_td_last.onclick = function() { fn_getGrdPage( lv_page_input_page_no, "last", _this ); };
       
-      if( !_this.currentPageNo ) {
-	_this.currentPageNo = 1;
-      }
-      
       lv_page_input_page_no.value = _this.currentPageNo;
       
       _this.pageOffset = (parseInt(_this.currentPageNo) * parseInt(_this.pageSize)) - parseInt(_this.pageSize);
@@ -475,10 +508,10 @@ $(document).ready( function() {
       lv_page_td_total_pgs.innerHTML = " of " + _this.pageCount;
       
       //Append Elements
-      lv_page_td_first.appendChild( lv_page_first_div );
-      lv_page_td_previous.appendChild( lv_page_previous_div );
-      lv_page_td_next.appendChild( lv_page_next_div );
-      lv_page_td_last.appendChild( lv_page_last_div );
+      lv_page_td_first.appendChild( lv_pageFirstBtnObj );
+      lv_page_td_previous.appendChild( lv_pagePreviousBtnObj );
+      lv_page_td_next.appendChild( lv_pageNextBtnObj );
+      lv_page_td_last.appendChild( lv_pageLastBtnObj );
       lv_page_td_curr_pg.appendChild( lv_cur_pg_label );
       lv_page_td_curr_pg.appendChild( lv_page_input_page_no );
       
@@ -506,104 +539,114 @@ $(document).ready( function() {
       _this.data = v_data;
       _this.reloading = false;
     }
-    _this.render();
+    
     _this.selectedRowIndex = null;
     _this.selectedRow = null;
+    _this.selectedRows = {};
+    
+    _this.render();
   }
   
   //Sort Grid
   gridPanel.prototype.sortGrid = function() {
     var _this = this;
     
-    //Calculate Offset based on the current page number
-    _this.pageOffset = (parseInt(_this.currentPageNo) * parseInt(_this.pageSize)) - parseInt(_this.pageSize);
-    _this.store.pageOffset = _this.pageOffset;
-    _this.store.pageSize = _this.pageSize;
-    
-    if( _this.paging ) {
-      if( _this.store.exParams ) {
-	_this.store.exParams = fn_objectMerge( _this.store.exParams, { "pageOffset": _this.pageOffset, "pageSize": _this.pageSize }, true );
-      }
-      else {
-	_this.store.exParams = { "pageOffset": _this.pageOffset, "pageSize": _this.pageSize };
-      }
-    }
+    if( ( parseInt( _this.currentPageNo ) ) && ( parseInt( _this.store.totalValue ) ) ) {
+      //Calculate Offset based on the current page number
+      _this.pageOffset = (parseInt(_this.currentPageNo) * parseInt(_this.pageSize)) - parseInt(_this.pageSize);
+      _this.store.pageOffset = _this.pageOffset;
+      _this.store.pageSize = _this.pageSize;
       
-    //Load data as per sorted column
-      $.post(
-	_this.store.callurl,
-	{
-	  method: _this.store.method,
-	  params: _this.store.baseParams,
-	  exParams: _this.store.exParams
-	},
-	function ( v_data, v_status ) {
-	  var lv_data = $.parseJSON( v_data );
-	  _this.data = JSON.stringify( lv_data[_this.store.root] );
-	  
-	  //Populate Data into the Grid
-	  var lv_data_div = document.getElementById( _this.container_id + "_datadiv" ); //Grid Data DIV
-	  lv_data_div.innerHTML = "";
-	  lv_data_div.className = "clsgrddata";
-	  
-	  var lv_dataLessHeight = 30;
-	  //For Paging
-	  if( _this.paging ) {
-	    lv_dataLessHeight = 57;
-	  }
-	  
-	  if( $.isNumeric( _this.height ) ) {
-	    lv_data_div.style.height = (_this.height - lv_dataLessHeight) + "px";
-	  }
-	  else {
-	    lv_data_div.style.height = _this.height;
-	  }
-	  
-	  var lv_data_table = document.createElement("table");  //Data Table
-	  lv_data_table.width = "100%";
-	  lv_data_table.border = 1;
-	  lv_data_table.setAttribute( "id", _this.container_id + "_data");
-	  
-	  var lv_data = $.parseJSON( _this.data );
-	  var lv_header = _this.headers;
-	  
-	  $.each( lv_data, function( v_data_idx, v_data_val ) {
-	    var lv_data_tr = document.createElement("tr");      //Data Row
-	    
-	    //Check position of Data values
-	      $.each( lv_header, function( v_idx, v_val ) {
-		var lv_td = document.createElement("td");   //Creating data Values
-		
-		lv_td.style.width = v_val.width + "px";
-		lv_td.innerHTML = v_data_val[v_val.dataIndex];
-		
-		lv_data_tr.appendChild( lv_td );   //Add Table data element to row
-	      });
-	      
-	      lv_data_table.appendChild( lv_data_tr );   //Add data row to Table
-	  });
-	  
-	  _this.selectedRowIndex = null;
-	  $( lv_data_table ).delegate("tr", "click", function(e) {
-	      $(this).addClass("clsselected").siblings().removeClass("clsselected");
-	      _this.selectedRowIndex = $(this).index();
-	      _this.selectedRow = (_this.selectedRowIndex != null) ? JSON.stringify(lv_data[_this.selectedRowIndex]) : null;
-	  });
-	  
-	  lv_data_div.appendChild( lv_data_table ); //Add Table to the Data DIV
-	  
-	  _this.dataContainer = lv_data_div;
-	  _this.dataTable = lv_data_table;
-	  
-	  //Listeners
-	  var lv_listeners = _this.listeners;
-	  $.each( lv_listeners, function( v_idx, v_val ) {
-	    if( v_idx ) {
-	      fn_assign_grid_event( _this, v_idx, v_val );
-	    }
-	  });
+      if( _this.paging ) {
+	if( _this.store.exParams ) {
+	  _this.store.exParams = fn_objectMerge( _this.store.exParams, { "pageOffset": _this.pageOffset, "pageSize": _this.pageSize }, true );
 	}
-      );
+	else {
+	  _this.store.exParams = { "pageOffset": _this.pageOffset, "pageSize": _this.pageSize };
+	}
+      }
+	
+      //Load data as per sorted column
+	$.post(
+	  _this.store.callurl,
+	  {
+	    method: _this.store.method,
+	    params: _this.store.baseParams,
+	    exParams: _this.store.exParams
+	  },
+	  function ( v_data, v_status ) {
+	    var lv_data = $.parseJSON( v_data );
+	    _this.data = JSON.stringify( lv_data[_this.store.root] );
+	    
+	    //Populate Data into the Grid
+	    var lv_data_div = document.getElementById( _this.container_id + "_datadiv" ); //Grid Data DIV
+	    lv_data_div.innerHTML = "";
+	    lv_data_div.className = "clsgrddata";
+	    
+	    var lv_dataLessHeight = 30;
+	    //For Paging
+	    if( _this.paging ) {
+	      lv_dataLessHeight = 57;
+	    }
+	    
+	    if( $.isNumeric( _this.height ) ) {
+	      lv_data_div.style.height = (_this.height - lv_dataLessHeight) + "px";
+	    }
+	    else {
+	      lv_data_div.style.height = _this.height;
+	    }
+	    
+	    var lv_data_table = document.createElement("table");  //Data Table
+	    lv_data_table.width = "100%";
+	    lv_data_table.border = 1;
+	    lv_data_table.setAttribute( "id", _this.container_id + "_data");
+	    
+	    var lv_data = $.parseJSON( _this.data );
+	    var lv_header = _this.headers;
+	    
+	    $.each( lv_data, function( v_data_idx, v_data_val ) {
+	      var lv_data_tr = document.createElement("tr");      //Data Row
+	      
+	      //Check position of Data values
+		$.each( lv_header, function( v_idx, v_val ) {
+		  var lv_td = document.createElement("td");   //Creating data Values
+		  
+		  lv_td.style.width = v_val.width + "px";
+		  lv_td.innerHTML = v_data_val[v_val.dataIndex];
+		  
+		  //Renderer
+		  if( typeof v_val.renderer === 'function' ) {
+		    lv_td = v_val.renderer( lv_td, v_data_val, v_data_val[v_val.dataIndex] );
+		  }
+		  
+		  lv_data_tr.appendChild( lv_td );   //Add Table data element to row
+		});
+		
+		lv_data_table.appendChild( lv_data_tr );   //Add data row to Table
+	    });
+	    
+	    _this.selectedRowIndex = null;
+	    $( lv_data_table ).delegate("tr", "click", function(e) {
+		$(this).addClass("clsselected").siblings().removeClass("clsselected");
+		_this.selectedRowIndex = $(this).index();
+		_this.selectedRow = (_this.selectedRowIndex != null) ? JSON.stringify(lv_data[_this.selectedRowIndex]) : null;
+	    });
+	    
+	    lv_data_div.appendChild( lv_data_table ); //Add Table to the Data DIV
+	    
+	    _this.dataContainer = lv_data_div;
+	    _this.dataTable = lv_data_table;
+	    
+	    //Listeners
+	    var lv_listeners = _this.listeners;
+	    $.each( lv_listeners, function( v_idx, v_val ) {
+	      if( v_idx ) {
+		fn_assign_grid_event( _this, v_idx, v_val );
+	      }
+	    });
+	  }
+	);
+    }
   }
   
   gridPanel.prototype.getSelectedRowIndex = function() {
@@ -617,7 +660,12 @@ $(document).ready( function() {
   fn_assign_grid_event = function( v_this, v_event, v_fun ) {
     var _this = v_this;
     
-    $( _this.dataTable ).find("tr").bind( v_event, v_fun );
+    $( _this.dataTable ).find("tr").bind( v_event, function() {
+      var lv_data = $.parseJSON( _this.data );
+      _this.selectedRowIndex = $(this).index();
+      _this.selectedRow = (_this.selectedRowIndex != null) ? JSON.stringify(lv_data[_this.selectedRowIndex]) : null;
+      v_fun( _this, _this.selectedRow, _this.selectedRowIndex );
+    });
   }
   
   gridPanel.prototype.on = function( v_event, v_fun ) {
@@ -636,6 +684,521 @@ $(document).ready( function() {
   
   /*****End of code for GridPanel****/
   
+  /*****Code for GridPanelChecked****/
+  /***********inherited from gridPanel*****/
+  fn_inherit_cls = function( cls_obj ) {
+    function cLs() {}; // Dummy constructor
+    cLs.prototype = cls_obj; 
+    return new cLs(); 
+  }
+
+  gridPanelChecked = function( v_params ) {
+    gridPanel.call( this, v_params ); //Call the parent class method
+    this.checkBoxRenderer = ( v_params.checkBoxRenderer ) ? v_params.checkBoxRenderer : false;
+    this.selectedRows = {};
+  }
+  
+  gridPanelChecked.prototype = fn_inherit_cls( gridPanel.prototype ); // Create a gridPanelChecked.prototype object that inherits from gridPanel.prototype
+  
+  gridPanelChecked.prototype.constructor = gridPanelChecked;
+  
+  fn_render_gridChecked = function( v_this ) {
+    var _this = v_this;
+    
+    if( ( _this.pageSize ) && ( _this.store.totalValue ) ) {
+      if( parseInt( _this.store.totalValue ) > parseInt( _this.pageSize ) ) {
+	_this.pageCount = Math.ceil( parseInt( _this.store.totalValue ) / parseInt( _this.pageSize ) );
+      }
+      else {
+	_this.pageCount = 1;
+      }
+    }
+    else {
+      _this.pageCount = 0;
+    }
+    
+    var lv_div = document.getElementById( _this.container_id );      //Container DIV element
+    lv_div.innerHTML = "";
+    if( $.isNumeric( _this.width ) ) {
+      lv_div.style.width = _this.width + "px";
+    }
+    else {
+      lv_div.style.width = _this.width;
+    }
+    
+    if( $.isNumeric( _this.height ) ) {
+      lv_div.style.height = _this.height + "px";
+    }
+    else {
+      lv_div.style.height = _this.height;
+    }
+    lv_div.className = "clsgrdcontainer";
+    
+    //Header
+    var lv_header_div = document.createElement("div"); //Grid Header DIV
+    lv_header_div.className = "clsgrdheader";
+    
+    var lv_header_table = document.createElement("table");  //Header Table
+    lv_header_table.width = "100%";
+    lv_header_table.setAttribute( "id", _this.container_id + "_header");
+    var lv_tr = document.createElement("tr");      //Header Row
+    
+    var lv_header = _this.headers;
+    
+    var lv_default_sort_col = false;
+    var lv_default_sort_order = 'asc';
+    if( _this.store.exParams.sortCol ) {
+      lv_default_sort_col = _this.store.exParams.sortCol;
+      lv_default_sort_order = ( _this.store.exParams.sortOrder ) ? _this.store.exParams.sortOrder : 'asc';
+    }
+    
+    var lv_th = document.createElement("th");   //Creating Header Value for the checkbox
+    lv_th.style.width = "13px";
+    var lv_checkbox_hdr = document.createElement("input");
+    lv_checkbox_hdr.type = "checkbox";
+    lv_checkbox_hdr.title = "Select All";
+    lv_checkbox_hdr.id = _this.container_id + "chkhdrall";
+    lv_checkbox_hdr.style.float = "left";
+    lv_checkbox_hdr.onclick = function() {
+      var _chkBox_selectAll = this;
+      var _selectAll_checked = this.checked;
+      var lv_data_table_childs = _this.dataTable.children;
+      $.each( lv_data_table_childs, function( v_idx, v_val ) {
+	var _this_chkBox = v_val.children[0].children[0];
+	
+	if( _selectAll_checked ) {
+	  if( !_this_chkBox.checked ) {
+	    $( _this_chkBox ).trigger("click");
+	  }
+	}
+	else {
+	  if( _this_chkBox.checked ) {
+	    $( _this_chkBox ).trigger("click");
+	  }
+	}
+	
+      });
+    };                                   //Select all records
+    lv_th.appendChild( lv_checkbox_hdr );
+    lv_tr.appendChild( lv_th );   //Add Table header checkbox element to row for 'Select All'
+    
+    $.each( lv_header, function( v_idx, v_val ) {
+      var lv_th = document.createElement("th");   //Creating Header Values for columns
+      var lv_span_img = document.createElement("span");
+      var lv_span_txt = document.createElement("span");
+      var lv_a_link = document.createElement("a");
+      var lv_hdr_col_tbl = document.createElement("table");
+      var lv_hdr_col_tr = document.createElement("tr");
+      var lv_hdr_col_td_img = document.createElement("td");
+      var lv_hdr_col_td_txt = document.createElement("td");
+      
+      lv_span_img.style.width = "14px";
+      lv_span_img.style.height = "9px";
+      lv_span_img.className = "clsgrdheaderimg";
+      lv_span_txt.className = "clsgrdheadertxt";
+      lv_span_txt.innerHTML = v_val.headerText;
+      
+      lv_hdr_col_td_img.appendChild( lv_span_img );
+      lv_hdr_col_td_txt.appendChild( lv_span_txt );
+      lv_hdr_col_tr.appendChild( lv_hdr_col_td_txt );
+      lv_hdr_col_tr.appendChild( lv_hdr_col_td_img );
+      lv_hdr_col_tbl.appendChild( lv_hdr_col_tr );
+      
+      lv_a_link.appendChild( lv_hdr_col_tbl );
+      
+      lv_th.style.width = v_val.width + "px";
+      lv_th.style.cursor = "url('/images/curnw.cur'), pointer";
+      lv_th.id = v_val.dataIndex;
+      
+      if( ( lv_default_sort_col ) && ( lv_default_sort_col == v_val.dataIndex ) ) {
+	if( lv_default_sort_order == 'asc' ) {
+	  $(lv_th).addClass("clsgrdheaderasc");
+	}
+	else {
+	  $(lv_th).addClass("clsgrdheaderdesc");
+	}
+      }
+      
+      lv_th.appendChild( lv_a_link );
+      
+      lv_tr.appendChild( lv_th );   //Add Table header element to row
+    });
+    
+    //For Sorting by a column
+    $( lv_tr ).delegate("th", "click", function(e) {
+      var lv_childNode = this.children[0];
+      
+      if( lv_childNode.type != 'checkbox' ) {
+	var lv_th_className = this.className;
+	var lv_sortOrder = "asc";
+	
+	if( ( lv_th_className ) && ( lv_th_className == "clsgrdheaderasc" ) ) {
+	  $(this).addClass("clsgrdheaderdesc").removeClass("clsgrdheaderasc").siblings().removeClass();
+	  lv_sortOrder = "desc";
+	}
+	else {
+	  $(this).addClass("clsgrdheaderasc").removeClass("clsgrdheaderdesc").siblings().removeClass();
+	  lv_sortOrder = "asc";
+	}
+	
+	_this.store.exParams = {
+	      sortCol: this.id,
+	      sortOrder: lv_sortOrder
+	};
+	_this.sortGrid();
+      }
+      
+    });
+    
+    lv_header_table.appendChild( lv_tr ); //Add row to header Table
+    lv_header_div.appendChild( lv_header_table ); //Add Table to the Header DIV
+    
+    //Populate Data into the Grid
+    var lv_data_div = document.createElement("div"); //Grid Data DIV
+    lv_data_div.className = "clsgrddata";
+    lv_data_div.id = _this.container_id + "_datadiv";
+    
+    var lv_dataLessHeight = 30;
+    //For Paging
+    if( _this.paging ) {
+      lv_dataLessHeight = 57;
+    }
+    
+    if( $.isNumeric( _this.height ) ) {
+      lv_data_div.style.height = (_this.height - lv_dataLessHeight) + "px";
+    }
+    else {
+      lv_data_div.style.height = _this.height;
+    }
+    
+    var lv_data_table = document.createElement("table");  //Data Table
+    lv_data_table.width = "100%";
+    lv_data_table.border = 1;
+    lv_data_table.setAttribute( "id", _this.container_id + "_data");
+    
+    var lv_data = $.parseJSON( _this.data );
+    
+    _this.selectedRows = {};  //Initialize selectedRows
+    
+    $.each( lv_data, function( v_data_idx, v_data_val ) {
+      var lv_data_tr = document.createElement("tr");      //Data Row
+	  lv_data_tr.id = _this.container_id + "dataTR" + v_data_idx;
+      var lv_td = document.createElement("td");
+      lv_td.className = "clsdatachkbox";
+      var lv_checkbox_row = document.createElement("input");   //Creating checkbox to select row
+      lv_checkbox_row.type = "checkbox";
+      lv_checkbox_row.title = "Select row";
+      lv_checkbox_row.id = _this.container_id + "chkrow";
+      lv_checkbox_row.onclick = function() {
+	var _this_parent_tr = this.parentNode.parentNode;
+	var lv_selected_row_idx = $( _this_parent_tr ).index();
+	  if( this.checked ) {
+	    $( _this_parent_tr ).addClass("clsselected");
+	    _this.selectedRows[lv_selected_row_idx] = lv_data[lv_selected_row_idx];
+	  }
+	  else {
+	    $( _this_parent_tr ).removeClass("clsselected");
+	    delete _this.selectedRows[lv_selected_row_idx];
+	  }
+      };
+      lv_checkbox_row.onchange = function() {
+	var _this_parent_tr = this.parentNode.parentNode;
+	var lv_selected_row_idx = $( _this_parent_tr ).index();
+	  if( this.checked ) {
+	    $( _this_parent_tr ).addClass("clsselected");
+	    _this.selectedRows[lv_selected_row_idx] = lv_data[lv_selected_row_idx];
+	  }
+	  else {
+	    $( _this_parent_tr ).removeClass("clsselected");
+	    delete _this.selectedRows[lv_selected_row_idx];
+	  }
+      };
+      
+      //Checkbox Renderer
+	  if( typeof _this.checkBoxRenderer === 'function' ) {
+	    lv_checkbox_row = _this.checkBoxRenderer( lv_checkbox_row, v_data_val );
+	  }
+      
+      lv_td.appendChild( lv_checkbox_row );   //Add checkbox to table data
+      lv_data_tr.appendChild( lv_td );   //Add Table data element to row
+      
+      //Check position of Data values
+        $.each( lv_header, function( v_idx, v_val ) {
+          var lv_td = document.createElement("td");   //Creating data Values
+          
+          lv_td.style.width = v_val.width + "px";
+          lv_td.innerHTML = v_data_val[v_val.dataIndex];
+	  
+	  //Renderer
+	  if( typeof v_val.renderer === 'function' ) {
+	    lv_td = v_val.renderer( lv_td, v_data_val, v_data_val[v_val.dataIndex] );
+	  }
+          
+          lv_data_tr.appendChild( lv_td );   //Add Table data element to row
+        });
+        
+        lv_data_table.appendChild( lv_data_tr );   //Add data row to Table
+	      
+	      //If checkbox selected then add to selectedRows array
+	      var lv_data_table_tr = $( lv_data_tr );
+	      var lv_selected_row_idx = lv_data_table_tr.index();
+		if( lv_checkbox_row.checked ) {
+		  lv_data_table_tr.addClass("clsselected");
+		  _this.selectedRows[lv_selected_row_idx] = lv_data[lv_selected_row_idx];
+		}
+		else {
+		  lv_data_table_tr.removeClass("clsselected");
+		  delete _this.selectedRows[lv_selected_row_idx];
+		}
+    });
+    
+    _this.selectedRowIndex = null;
+    $( lv_data_table ).delegate("tr", "click", function(e) {
+	_this.selectedRowIndex = $(this).index();
+	_this.selectedRow = (_this.selectedRowIndex != null) ? JSON.stringify(lv_data[_this.selectedRowIndex]) : null;
+    });
+    
+    lv_data_div.appendChild( lv_data_table ); //Add Table to the Data DIV
+    
+    lv_div.appendChild( lv_header_div ); //Add Header Table to the Container Element
+    lv_div.appendChild( lv_data_div ); //Add Data Table to the Container Element
+    if( _this.paging ) {
+      var lv_pagcont_div = fn_createGridPagingElement( _this );
+      lv_div.appendChild( lv_pagcont_div ); //Add paging Container if enabled
+    }
+    
+    _this.containerElement = lv_div;
+    _this.headerContainer = lv_header_div;
+    _this.headerTable = lv_header_table;
+    _this.dataContainer = lv_data_div;
+    _this.dataTable = lv_data_table;
+    
+    //Listeners
+    var lv_listeners = _this.listeners;
+    $.each( lv_listeners, function( v_idx, v_val ) {
+      if( v_idx ) {
+	fn_assign_grid_event( _this, v_idx, v_val );
+      }
+    });
+  }
+  
+  gridPanelChecked.prototype.render = function() {
+    var _this = this;
+    
+    //Calculate Offset based on the current page number
+    _this.pageOffset = (parseInt(_this.currentPageNo) * parseInt(_this.pageSize)) - parseInt(_this.pageSize);
+    _this.store.pageOffset = _this.pageOffset;
+    _this.store.pageSize = _this.pageSize;
+    
+    //Load data when store specified
+    if( _this.store ) {
+      if( ( _this.store.data ) && ( !_this.reloading ) ) {
+	_this.data = _this.store.data;
+	
+	fn_render_gridChecked( _this );
+      }
+      else {
+	var lv_urlObj = fn_getURLnFun( _this.store.url );
+	
+	_this.store.callurl = lv_urlObj.url;
+	_this.store.method = lv_urlObj.method;
+	
+	if( _this.store.exParams ) {
+	  _this.store.exParams = fn_objectMerge( _this.store.exParams, { "pageOffset": _this.pageOffset, "pageSize": _this.pageSize }, true );
+	}
+	else {
+	  _this.store.exParams = { "pageOffset": _this.pageOffset, "pageSize": _this.pageSize };
+	}
+	
+	$.post(
+	  _this.store.callurl,
+	  {
+	    method: _this.store.method,
+	    params: _this.store.baseParams,
+	    exParams: _this.store.exParams
+	  },
+	  function ( v_data, v_status ) {
+	    var lv_data = $.parseJSON( v_data );
+	    _this.data = JSON.stringify( lv_data[_this.store.root] );
+	    
+	    _this.store.data = _this.data;
+	    
+	    if( _this.store.totalProperty ) {
+	      _this.store.totalValue = parseInt( lv_data[_this.store.totalProperty] );
+	    }
+	    else {
+	      _this.store.totalValue = false;
+	    }
+	    
+	    fn_render_gridChecked( _this );
+	  }
+	);
+      }
+      
+    }
+    else {
+      fn_render_gridChecked( _this );
+    }
+  }
+  
+  //Sort Grid
+  gridPanelChecked.prototype.sortGrid = function() {
+    var _this = this;
+    
+    if( ( parseInt( _this.currentPageNo ) ) && ( parseInt( _this.store.totalValue ) ) ) {
+      //Calculate Offset based on the current page number
+      _this.pageOffset = (parseInt(_this.currentPageNo) * parseInt(_this.pageSize)) - parseInt(_this.pageSize);
+      _this.store.pageOffset = _this.pageOffset;
+      _this.store.pageSize = _this.pageSize;
+      
+      if( _this.paging ) {
+	if( _this.store.exParams ) {
+	  _this.store.exParams = fn_objectMerge( _this.store.exParams, { "pageOffset": _this.pageOffset, "pageSize": _this.pageSize }, true );
+	}
+	else {
+	  _this.store.exParams = { "pageOffset": _this.pageOffset, "pageSize": _this.pageSize };
+	}
+      }
+	
+      //Load data as per sorted column
+	$.post(
+	  _this.store.callurl,
+	  {
+	    method: _this.store.method,
+	    params: _this.store.baseParams,
+	    exParams: _this.store.exParams
+	  },
+	  function ( v_data, v_status ) {
+	    var lv_data = $.parseJSON( v_data );
+	    _this.data = JSON.stringify( lv_data[_this.store.root] );
+	    
+	    //Populate Data into the Grid
+	    var lv_data_div = document.getElementById( _this.container_id + "_datadiv" ); //Grid Data DIV
+	    lv_data_div.innerHTML = "";
+	    lv_data_div.className = "clsgrddata";
+	    
+	    var lv_dataLessHeight = 30;
+	    //For Paging
+	    if( _this.paging ) {
+	      lv_dataLessHeight = 57;
+	    }
+	    
+	    if( $.isNumeric( _this.height ) ) {
+	      lv_data_div.style.height = (_this.height - lv_dataLessHeight) + "px";
+	    }
+	    else {
+	      lv_data_div.style.height = _this.height;
+	    }
+	    
+	    var lv_data_table = document.createElement("table");  //Data Table
+	    lv_data_table.width = "100%";
+	    lv_data_table.border = 1;
+	    lv_data_table.setAttribute( "id", _this.container_id + "_data");
+	    
+	    var lv_data = $.parseJSON( _this.data );
+	    var lv_header = _this.headers;
+	    
+	    $.each( lv_data, function( v_data_idx, v_data_val ) {
+	      var lv_data_tr = document.createElement("tr");      //Data Row
+		  lv_data_tr.id = _this.container_id + "dataTR" + v_data_idx;
+	      var lv_td = document.createElement("td");
+	      lv_td.className = "clsdatachkbox";
+	      var lv_checkbox_row = document.createElement("input");   //Creating checkbox to select row
+	      lv_checkbox_row.type = "checkbox";
+	      lv_checkbox_row.title = "Select row";
+	      lv_checkbox_row.id = _this.container_id + "chkrow";
+	      lv_checkbox_row.onclick = function() {
+		var _this_parent_tr = this.parentNode.parentNode;
+		var lv_selected_row_idx = $( _this_parent_tr ).index();
+		  if( this.checked ) {
+		    $( _this_parent_tr ).addClass("clsselected");
+		    _this.selectedRows[lv_selected_row_idx] = lv_data[lv_selected_row_idx];
+		  }
+		  else {
+		    $( _this_parent_tr ).removeClass("clsselected");
+		    delete _this.selectedRows[lv_selected_row_idx];
+		  }
+	      };
+	      lv_checkbox_row.onchange = function() {
+		var _this_parent_tr = this.parentNode.parentNode;
+		var lv_selected_row_idx = $( _this_parent_tr ).index();
+		  if( this.checked ) {
+		    $( _this_parent_tr ).addClass("clsselected");
+		    _this.selectedRows[lv_selected_row_idx] = lv_data[lv_selected_row_idx];
+		  }
+		  else {
+		    $( _this_parent_tr ).removeClass("clsselected");
+		    delete _this.selectedRows[lv_selected_row_idx];
+		  }
+	      };
+	      
+	      //Checkbox Renderer
+		  if( typeof _this.checkBoxRenderer === 'function' ) {
+		    lv_checkbox_row = _this.checkBoxRenderer( lv_checkbox_row, v_data_val );
+		  }
+		  
+	      lv_td.appendChild( lv_checkbox_row );   //Add checkbox to table data
+	      lv_data_tr.appendChild( lv_td );   //Add Table data element to row
+	      
+	      //Check position of Data values
+		$.each( lv_header, function( v_idx, v_val ) {
+		  var lv_td = document.createElement("td");   //Creating data Values
+		  
+		  lv_td.style.width = v_val.width + "px";
+		  lv_td.innerHTML = v_data_val[v_val.dataIndex];
+		  
+		  //Renderer
+		  if( typeof v_val.renderer === 'function' ) {
+		    lv_td = v_val.renderer( lv_td, v_data_val, v_data_val[v_val.dataIndex] );
+		  }
+		  
+		  lv_data_tr.appendChild( lv_td );   //Add Table data element to row
+		});
+		
+		lv_data_table.appendChild( lv_data_tr );   //Add data row to Table
+	      
+	      //If checkbox selected then add to selectedRows array
+	      var lv_data_table_tr = $( lv_data_tr );
+	      var lv_selected_row_idx = lv_data_table_tr.index();
+		if( lv_checkbox_row.checked ) {
+		  lv_data_table_tr.addClass("clsselected");
+		  _this.selectedRows[lv_selected_row_idx] = lv_data[lv_selected_row_idx];
+		}
+		else {
+		  lv_data_table_tr.removeClass("clsselected");
+		  delete _this.selectedRows[lv_selected_row_idx];
+		}
+	    });
+	    
+	    _this.selectedRowIndex = null;
+	    $( lv_data_table ).delegate("tr", "click", function(e) {
+		_this.selectedRowIndex = $(this).index();
+		_this.selectedRow = (_this.selectedRowIndex != null) ? JSON.stringify(lv_data[_this.selectedRowIndex]) : null;
+	    });
+	    
+	    lv_data_div.appendChild( lv_data_table ); //Add Table to the Data DIV
+	    
+	    _this.dataContainer = lv_data_div;
+	    _this.dataTable = lv_data_table;
+	    
+	    //Listeners
+	    var lv_listeners = _this.listeners;
+	    $.each( lv_listeners, function( v_idx, v_val ) {
+	      if( v_idx ) {
+		fn_assign_grid_event( _this, v_idx, v_val );
+	      }
+	    });
+	  }
+	);
+    }
+  }
+  
+  gridPanelChecked.prototype.getSelectedRecords = function() {
+    var _this = this;
+    return JSON.stringify( _this.selectedRows );
+  }
+  
+  /*****End of code for GridPanelChecked****/
   
   /****Code for combobox***/
   //Constructor Method
@@ -970,7 +1533,7 @@ $(document).ready( function() {
     var lv_ok_btn = document.createElement("input");
     lv_ok_btn.type = "button";
     lv_ok_btn.id = "btnalertok";
-    lv_ok_btn.onclick = function() { _this.hide(_this); };
+    lv_ok_btn.onclick = function() { _this.hide(); };
     lv_ok_btn.value = "OK";
     
     lv_td_btn.appendChild( lv_ok_btn );
@@ -989,13 +1552,173 @@ $(document).ready( function() {
     this.obj.style.display = "";
   }
   
-  alertBox.prototype.hide = function( v_obj ) {
-    v_obj.maskDiv.style.display = "none";
-    v_obj.obj.style.display = "none";
+  alertBox.prototype.hide = function() {
+    var _this = this;
+    _this.maskDiv.style.display = "none";
+    _this.obj.style.display = "none";
     return true;
   }
   
   /****End of Code for AlertBox***/
+  
+  
+  
+  /****Code for ConfirmBox***/
+  //Constructor Method
+  confirmBox = function( v_params ) {
+    this.id = "confirmbox";
+    this.width = 243;
+    this.minHeight = 107;
+    this.title = (v_params.title) ? v_params.title : "";
+    this.masked = (v_params.masked) ? v_params.masked : false;
+    this.msg = (v_params.msg) ? v_params.msg : "";
+    this.callback = (v_params.callback) ? v_params.callback : false;
+    this.btn = {};
+    this.btn.no = false;
+    this.btn.yes = false;
+    
+    return this;
+  }
+  
+  confirmBox.prototype.render = function() {
+    var _this = this;
+    
+    fn_removeChildElem( "divWinObjCont" + _this.id );
+    
+    var lv_divWinObjCont = document.createElement("div");
+    lv_divWinObjCont.id = "divWinObjCont" + _this.id;
+    lv_divWinObjCont.style.height = "100%";
+    lv_divWinObjCont.style.width = "100%";
+    lv_divWinObjCont.style.position = "fixed";
+    lv_divWinObjCont.style.clear = "both";
+    lv_divWinObjCont.style.margin = "auto 0";
+    lv_divWinObjCont.style.top = "10%";
+    lv_divWinObjCont.style.left = "0";
+    
+    var lv_highestZIndex = fn_getHighestZIndex("body");
+    
+    lv_divWinObjCont.style.zIndex = lv_highestZIndex + 3;
+    
+    var lv_divWinObj = document.createElement("div");
+    lv_divWinObj.id = "divWinObj" + _this.id;
+    lv_divWinObj.style.background = "#FFFFFF";
+    lv_divWinObj.style.border = "1px solid #000000";
+    
+    if( $.isNumeric( _this.width ) ) {
+      lv_divWinObj.style.width = _this.width + "px";
+    }
+    else {
+      lv_divWinObj.style.width = _this.width;
+    }
+    
+    if( $.isNumeric( _this.minHeight ) ) {
+      lv_divWinObj.style.minHeight = _this.minHeight + "px";
+    }
+    else {
+      lv_divWinObj.style.minHeight = _this.minHeight;
+    }
+    
+    lv_divWinObj.style.overflow = "hidden";
+    lv_divWinObj.style.position = "relative";
+    lv_divWinObj.style.margin = "0 auto";
+    
+    //Window Title
+    var lv_table = document.createElement("table");
+    var lv_tr_title = document.createElement("tr");
+    var lv_td_title = document.createElement("td");
+    var lv_div_title = document.createElement("div");
+    
+    if( $.isNumeric( _this.width ) ) {
+      lv_div_title.style.width = (_this.width - 6) + "px";
+    }
+    else {
+      lv_div_title.style.width = _this.width;
+    }
+    lv_div_title.className = "clswintitle";
+    lv_div_title.innerHTML = _this.title;
+    lv_td_title.appendChild( lv_div_title );
+    lv_tr_title.appendChild( lv_td_title );
+    lv_table.appendChild( lv_tr_title );
+    
+    //Window Elements Body
+    var lv_tr_body = document.createElement("tr");
+    var lv_td_body = document.createElement("td");
+    lv_td_body.className = "clsalerttxttd";
+    lv_td_body.colSpan = "2";
+    var lv_divWinElms = document.createElement("div");
+    lv_divWinElms.innerHTML = _this.msg;
+    lv_divWinElms.style.margin = "13px 0";
+    lv_divWinElms.style.width = "99%";
+    lv_divWinElms.style.height = "auto";
+    
+    if( _this.masked ) {
+      fn_removeChildElem( "maskDiv" + _this.id );
+      
+      var lv_maskDiv = document.createElement("div");
+      lv_maskDiv.id = "maskDiv" + _this.id;
+      lv_maskDiv.style.height = "100%";
+      lv_maskDiv.style.width = "100%";
+      lv_maskDiv.style.zIndex = lv_highestZIndex + 1;
+      lv_maskDiv.style.display = "none";
+      lv_maskDiv.style.position = "fixed";
+      lv_maskDiv.style.clear = "both";
+      
+      _this.maskDiv = lv_maskDiv;
+      
+      document.body.appendChild( lv_maskDiv );
+    }
+    lv_td_body.appendChild( lv_divWinElms );
+    lv_tr_body.appendChild( lv_td_body );
+    lv_table.appendChild( lv_tr_body );
+    
+    var lv_tr_btn = document.createElement("tr");
+    var lv_td_btn = document.createElement("td");
+    lv_td_btn.className = "clsalertbtn";
+    var lv_td_btn_div = document.createElement("div");
+    
+    var lv_yes_btn = document.createElement("input");
+    lv_yes_btn.type = "button";
+    lv_yes_btn.id = "btnconfirmyes";
+    lv_yes_btn.onclick = function() { _this.btn.yes = true; _this.hide(); };
+    lv_yes_btn.value = "YES";
+    
+    var lv_no_btn = document.createElement("input");
+    lv_no_btn.type = "button";
+    lv_no_btn.id = "btnconfirmno";
+    lv_no_btn.onclick = function() { _this.btn.no = true; _this.hide(); };
+    lv_no_btn.value = "NO";
+    
+    lv_td_btn_div.appendChild( lv_yes_btn );
+    lv_td_btn_div.appendChild( lv_no_btn );
+    lv_td_btn.appendChild( lv_td_btn_div );
+    lv_tr_btn.appendChild( lv_td_btn );
+    lv_table.appendChild( lv_tr_btn );
+    
+    lv_divWinObj.appendChild( lv_table );
+    lv_divWinObjCont.appendChild( lv_divWinObj );
+    
+    _this.obj = lv_divWinObjCont;
+    document.body.appendChild( lv_divWinObjCont );
+  }
+  
+  confirmBox.prototype.show = function() {
+    this.maskDiv.style.display = "";
+    this.obj.style.display = "";
+  }
+  
+  confirmBox.prototype.hide = function() {
+    var _this = this;
+    _this.maskDiv.style.display = "none";
+    _this.obj.style.display = "none";
+    
+    if( typeof _this.callback === 'function' ) {
+      _this.callback( _this.btn );
+    }
+    return true;
+  }
+  
+  /****End of Code for ConfirmBox***/
+  
   
   /***Functions***/
   
@@ -1008,6 +1731,18 @@ $(document).ready( function() {
     });
     lv_alertObj.render();
     lv_alertObj.show();
+  }
+  
+  //Confirm
+  fn_confirm = function( v_title, v_msg, v_callback ) {
+    var lv_confirmObj = new confirmBox({
+      title: v_title,
+      msg: v_msg,
+      masked: true,
+      callback: v_callback
+    });
+    lv_confirmObj.render();
+    lv_confirmObj.show();
   }
   
   //Function to Assign values to the DIV container's child elements
@@ -1267,6 +2002,29 @@ $(document).ready( function() {
     lv_retObj["url"] = lv_url;
     
     return lv_retObj;
+  }
+  
+  fn_createBtnObj = function( v_midObj ) {
+    
+    var lv_btn_table = document.createElement("table"); //Button table
+	lv_btn_table.cellSpacing = "0";
+	lv_btn_table.cellPadding = "0";
+    var lv_btn_tr = document.createElement("tr"); //Button tr
+    var lv_btn_left_td = document.createElement("td"); //Button left td
+	lv_btn_left_td.className = "clsbtnleft";
+    var lv_btn_mid_td = document.createElement("td"); //Button mid td
+	lv_btn_mid_td.className = "clsbtnmid";
+    var lv_btn_right_td = document.createElement("td"); //Button right td
+	lv_btn_right_td.className = "clsbtnright";
+	
+    lv_btn_mid_td.appendChild( v_midObj );
+    
+    lv_btn_tr.appendChild( lv_btn_left_td );
+    lv_btn_tr.appendChild( lv_btn_mid_td );
+    lv_btn_tr.appendChild( lv_btn_right_td );
+    lv_btn_table.appendChild( lv_btn_tr );
+    
+    return lv_btn_table;
   }
   
 });
