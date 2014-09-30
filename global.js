@@ -80,6 +80,7 @@ $(document).ready( function() {
     this.listeners = (v_params.listeners) ? v_params.listeners : false;
     this.selectedRowIndex = null;
     this.selectedRow = null;
+    this.afterRender = (v_params.afterRender) ? v_params.afterRender : false;
     
     return this;
   }
@@ -337,6 +338,10 @@ $(document).ready( function() {
 	fn_assign_grid_event( _this, v_idx, v_val );
       }
     });
+    
+    if( typeof _this.afterRender === 'function' ) {
+      _this.afterRender( _this );
+    }
   }
   
   //Update Navigation CSS
@@ -348,8 +353,8 @@ $(document).ready( function() {
     var lv_page_td_next = document.getElementById( _this.container_id + "_navnext" );
     var lv_page_td_last = document.getElementById( _this.container_id + "_navlast" );
     
-    if( _this.pageCount >= 1 ) {
-      if( v_counter <= 1 ) {
+    if( parseInt( _this.pageCount ) > 1 ) {
+      if( parseInt( v_counter ) == 1 ) {
 	lv_page_td_first.className = "clspgfst clspgfstdsbl clsbtndsbl";
 	lv_page_td_previous.className = "clspgpre clspgpredsbl clsbtndsbl";
 	lv_page_td_next.className = "clspgnxt";
@@ -462,7 +467,7 @@ $(document).ready( function() {
       
       lv_page_td_first.className = "clspgfst clspgfstdsbl clsbtndsbl";
       lv_page_td_previous.className = "clspgpre clspgpredsbl clsbtndsbl";
-      if( _this.currentPageNo ) {
+      if( parseInt(_this.pageCount) > 1 ) {
 	lv_page_td_next.className = "clspgnxt";
 	lv_page_td_last.className = "clspglst";
       }
@@ -545,6 +550,46 @@ $(document).ready( function() {
     _this.selectedRows = {};
     
     _this.render();
+  }
+  
+  gridPanel.prototype.selectRow = function( v_idx ) {
+    var _this = this;
+    
+    var lv_data_div = document.getElementById( _this.container_id + "_datadiv" ); //Grid Data DIV
+    var lv_data_table = lv_data_div.children[0];
+    var lv_index = null;
+      lv_index = parseInt( v_idx );
+    
+    if( $.isNumeric( lv_index ) ) {
+      
+      var lv_row = lv_data_table.rows[lv_index];
+      
+      if( lv_row != undefined ) {
+	$( lv_row ).trigger("click");
+	
+	return true;
+      }
+      else {
+	return false;
+      }
+    }
+    else {
+      return false;
+    }
+    
+  }
+  
+  gridPanel.prototype.clearData = function() {
+    var _this = this;
+    
+    //Clear data
+      var lv_data_div = document.getElementById( _this.container_id + "_datadiv" ); //Grid Data DIV
+      if( lv_data_div ) { lv_data_div.innerHTML = ""; }
+      
+      _this.store.baseParams = false;
+      _this.data = false;
+      _this.dataContainer = undefined;
+      _this.dataTable = undefined;
   }
   
   //Sort Grid
@@ -644,6 +689,11 @@ $(document).ready( function() {
 		fn_assign_grid_event( _this, v_idx, v_val );
 	      }
 	    });
+	    
+	    //After Render
+	    if( typeof _this.afterRender === 'function' ) {
+	      _this.afterRender( _this );
+	    }
 	  }
 	);
     }
@@ -980,6 +1030,11 @@ $(document).ready( function() {
 	fn_assign_grid_event( _this, v_idx, v_val );
       }
     });
+    
+    //After Render
+    if( typeof _this.afterRender === 'function' ) {
+      _this.afterRender( _this );
+    }
   }
   
   gridPanelChecked.prototype.render = function() {
@@ -1188,6 +1243,11 @@ $(document).ready( function() {
 		fn_assign_grid_event( _this, v_idx, v_val );
 	      }
 	    });
+	    
+	    //After Render
+	    if( typeof _this.afterRender === 'function' ) {
+	      _this.afterRender( _this );
+	    }
 	  }
 	);
     }
@@ -1207,7 +1267,8 @@ $(document).ready( function() {
     this.width = (v_params.width) ? v_params.width : "auto";
     this.height = (v_params.height) ? v_params.height : "auto";
     this.container_id = v_params.container_id;
-    this.data = v_params.data;
+    this.data = (v_params.data) ? v_params.data : false;
+    this.store = (v_params.store) ? v_params.store : false;
     this.valueField = v_params.valueField;
     this.textField = v_params.textField;
     this.defaultSelectedValue = (v_params.defaultSelectedValue) ? v_params.defaultSelectedValue : null ;
@@ -1244,20 +1305,61 @@ $(document).ready( function() {
     lv_opts.value = "";
     lv_opts.text = "";
     lv_combo.add( lv_opts );
-      
-    var lv_data = $.parseJSON( _this.data );
-    $.each( lv_data, function( v_idx, v_val ) {
-      var lv_opts = document.createElement("option");
-      lv_opts.value = v_val[_this.valueField];
-      lv_opts.text = v_val[_this.textField];
-      
-      //Select the Default value
-      if( ( _this.defaultSelectedValue ) && ( v_val[_this.valueField] == _this.defaultSelectedValue ) ) {
-        lv_opts.selected = true;
-      }
-      
-      lv_combo.add( lv_opts );
-    });
+    
+    //If DATA is passed as JSON string
+    if( _this.data ) {
+      var lv_data = $.parseJSON( _this.data );
+      $.each( lv_data, function( v_idx, v_val ) {
+	var lv_opts = document.createElement("option");
+	lv_opts.value = v_val[_this.valueField];
+	lv_opts.text = v_val[_this.textField];
+	
+	//Select the Default value
+	if( ( _this.defaultSelectedValue ) && ( v_val[_this.valueField] == _this.defaultSelectedValue ) ) {
+	  lv_opts.selected = true;
+	}
+	
+	lv_combo.add( lv_opts );
+      });
+    }
+    
+    //If DATA Store is given
+    if( _this.store ) {
+      var lv_urlObj = fn_getURLnFun( _this.store.url );
+	
+	_this.store.callurl = lv_urlObj.url;
+	_this.store.method = lv_urlObj.method;
+	
+	$.post(
+	  _this.store.callurl,
+	  {
+	    method: _this.store.method,
+	    params: _this.store.baseParams,
+	    exParams: _this.store.exParams
+	  },
+	  function ( v_data, v_status ) {
+	    var lv_data = $.parseJSON( v_data );
+	    _this.data = JSON.stringify( lv_data[_this.store.root] );
+	    var lv_items_data = lv_data[_this.store.root];
+	    
+	    _this.store.data = _this.data;
+	    
+	    $.each( lv_items_data, function( v_idx, v_val ) {
+	      var lv_opts = document.createElement("option");
+	      lv_opts.value = v_val[_this.valueField];
+	      lv_opts.text = v_val[_this.textField];
+	      
+	      //Select the Default value
+	      if( ( _this.defaultSelectedValue ) && ( v_val[_this.valueField] == _this.defaultSelectedValue ) ) {
+		lv_opts.selected = true;
+	      }
+	      
+	      lv_combo.add( lv_opts );
+	    });
+	    
+	  }
+	);
+    }
     
     lv_div.appendChild( lv_combo ); //Add Combo to the Container Element
     
@@ -1362,6 +1464,9 @@ $(document).ready( function() {
       lv_maskDiv.style.display = "none";
       lv_maskDiv.style.position = "fixed";
       lv_maskDiv.style.clear = "both";
+      lv_maskDiv.style.left = "0px";
+      lv_maskDiv.style.top = "0px";
+      lv_maskDiv.className = "clsmask";
       
       _this.maskDiv = lv_maskDiv;
       
@@ -1517,6 +1622,9 @@ $(document).ready( function() {
       lv_maskDiv.style.display = "none";
       lv_maskDiv.style.position = "fixed";
       lv_maskDiv.style.clear = "both";
+      lv_maskDiv.style.left = "0px";
+      lv_maskDiv.style.top = "0px";
+      lv_maskDiv.className = "clsmask";
       
       _this.maskDiv = lv_maskDiv;
       
@@ -1662,6 +1770,9 @@ $(document).ready( function() {
       lv_maskDiv.style.display = "none";
       lv_maskDiv.style.position = "fixed";
       lv_maskDiv.style.clear = "both";
+      lv_maskDiv.style.left = "0px";
+      lv_maskDiv.style.top = "0px";
+      lv_maskDiv.className = "clsmask";
       
       _this.maskDiv = lv_maskDiv;
       
