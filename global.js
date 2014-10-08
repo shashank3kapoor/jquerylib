@@ -49,13 +49,13 @@ $(document).ready( function() {
       },
       function ( v_data, v_status ) {
 	var lv_data = $.parseJSON( v_data );
-	_this.data = JSON.stringify( lv_data[_this.root] );
+	_this.data = lv_data[_this.root];
 	
 	if( _this.totalProperty ) {
-	  _this.store.totalValue = parseInt( lv_data[_this.totalProperty] );
+	  _this.totalValue = parseInt( lv_data[_this.totalProperty] );
 	}
 	else {
-	  _this.store.totalValue = false;
+	  _this.totalValue = false;
 	}
       }
     );
@@ -94,6 +94,14 @@ $(document).ready( function() {
     _this.store.pageOffset = _this.pageOffset;
     _this.store.pageSize = _this.pageSize;
     
+    _this.loadingMask = new loadingMask({
+      id: 'loadingMask' + _this.id,
+      masked: true,
+      maskElementId: _this.container_id
+    });
+    _this.loadingMask.render();
+    _this.loadingMask.show();
+    
     //Load data when store specified
     if( _this.store ) {
       if( ( _this.store.data ) && ( !_this.reloading ) ) {
@@ -123,7 +131,7 @@ $(document).ready( function() {
 	  },
 	  function ( v_data, v_status ) {
 	    var lv_data = $.parseJSON( v_data );
-	    _this.data = JSON.stringify( lv_data[_this.store.root] );
+	    _this.data = lv_data[_this.store.root];
 	    
 	    _this.store.data = _this.data;
 	    
@@ -286,7 +294,7 @@ $(document).ready( function() {
     lv_data_table.border = 1;
     lv_data_table.setAttribute( "id", _this.container_id + "_data");
     
-    var lv_data = $.parseJSON( _this.data );
+    var lv_data = _this.data;
     
     $.each( lv_data, function( v_data_idx, v_data_val ) {
       var lv_data_tr = document.createElement("tr");      //Data Row
@@ -313,7 +321,7 @@ $(document).ready( function() {
     $( lv_data_table ).delegate("tr", "click", function(e) {
 	$(this).addClass("clsselected").siblings().removeClass("clsselected");
 	_this.selectedRowIndex = $(this).index();
-	_this.selectedRow = (_this.selectedRowIndex != null) ? JSON.stringify(lv_data[_this.selectedRowIndex]) : null;
+	_this.selectedRow = (_this.selectedRowIndex != null) ? lv_data[_this.selectedRowIndex] : null;
     });
     
     lv_data_div.appendChild( lv_data_table ); //Add Table to the Data DIV
@@ -342,6 +350,8 @@ $(document).ready( function() {
     if( typeof _this.afterRender === 'function' ) {
       _this.afterRender( _this );
     }
+    
+    _this.loadingMask.hide();
   }
   
   //Update Navigation CSS
@@ -596,6 +606,14 @@ $(document).ready( function() {
   gridPanel.prototype.sortGrid = function() {
     var _this = this;
     
+    _this.loadingMask = new loadingMask({
+      id: 'loadingMask' + _this.id,
+      masked: true,
+      maskElementId: _this.container_id
+    });
+    _this.loadingMask.render();
+    _this.loadingMask.show();
+    
     if( ( parseInt( _this.currentPageNo ) ) && ( parseInt( _this.store.totalValue ) ) ) {
       //Calculate Offset based on the current page number
       _this.pageOffset = (parseInt(_this.currentPageNo) * parseInt(_this.pageSize)) - parseInt(_this.pageSize);
@@ -621,7 +639,7 @@ $(document).ready( function() {
 	  },
 	  function ( v_data, v_status ) {
 	    var lv_data = $.parseJSON( v_data );
-	    _this.data = JSON.stringify( lv_data[_this.store.root] );
+	    _this.data = lv_data[_this.store.root];
 	    
 	    //Populate Data into the Grid
 	    var lv_data_div = document.getElementById( _this.container_id + "_datadiv" ); //Grid Data DIV
@@ -646,7 +664,7 @@ $(document).ready( function() {
 	    lv_data_table.border = 1;
 	    lv_data_table.setAttribute( "id", _this.container_id + "_data");
 	    
-	    var lv_data = $.parseJSON( _this.data );
+	    var lv_data = _this.data;
 	    var lv_header = _this.headers;
 	    
 	    $.each( lv_data, function( v_data_idx, v_data_val ) {
@@ -674,7 +692,7 @@ $(document).ready( function() {
 	    $( lv_data_table ).delegate("tr", "click", function(e) {
 		$(this).addClass("clsselected").siblings().removeClass("clsselected");
 		_this.selectedRowIndex = $(this).index();
-		_this.selectedRow = (_this.selectedRowIndex != null) ? JSON.stringify(lv_data[_this.selectedRowIndex]) : null;
+		_this.selectedRow = (_this.selectedRowIndex != null) ? lv_data[_this.selectedRowIndex] : null;
 	    });
 	    
 	    lv_data_div.appendChild( lv_data_table ); //Add Table to the Data DIV
@@ -694,6 +712,8 @@ $(document).ready( function() {
 	    if( typeof _this.afterRender === 'function' ) {
 	      _this.afterRender( _this );
 	    }
+	    
+	    _this.loadingMask.hide();
 	  }
 	);
     }
@@ -711,9 +731,9 @@ $(document).ready( function() {
     var _this = v_this;
     
     $( _this.dataTable ).find("tr").bind( v_event, function() {
-      var lv_data = $.parseJSON( _this.data );
+      var lv_data = _this.data;
       _this.selectedRowIndex = $(this).index();
-      _this.selectedRow = (_this.selectedRowIndex != null) ? JSON.stringify(lv_data[_this.selectedRowIndex]) : null;
+      _this.selectedRow = (_this.selectedRowIndex != null) ? lv_data[_this.selectedRowIndex] : null;
       v_fun( _this, _this.selectedRow, _this.selectedRowIndex );
     });
   }
@@ -926,7 +946,7 @@ $(document).ready( function() {
     lv_data_table.border = 1;
     lv_data_table.setAttribute( "id", _this.container_id + "_data");
     
-    var lv_data = $.parseJSON( _this.data );
+    var lv_data = _this.data;
     
     _this.selectedRows = {};  //Initialize selectedRows
     
@@ -1005,7 +1025,7 @@ $(document).ready( function() {
     _this.selectedRowIndex = null;
     $( lv_data_table ).delegate("tr", "click", function(e) {
 	_this.selectedRowIndex = $(this).index();
-	_this.selectedRow = (_this.selectedRowIndex != null) ? JSON.stringify(lv_data[_this.selectedRowIndex]) : null;
+	_this.selectedRow = (_this.selectedRowIndex != null) ? lv_data[_this.selectedRowIndex] : null;
     });
     
     lv_data_div.appendChild( lv_data_table ); //Add Table to the Data DIV
@@ -1035,6 +1055,8 @@ $(document).ready( function() {
     if( typeof _this.afterRender === 'function' ) {
       _this.afterRender( _this );
     }
+    
+    _this.loadingMask.hide();
   }
   
   gridPanelChecked.prototype.render = function() {
@@ -1044,6 +1066,14 @@ $(document).ready( function() {
     _this.pageOffset = (parseInt(_this.currentPageNo) * parseInt(_this.pageSize)) - parseInt(_this.pageSize);
     _this.store.pageOffset = _this.pageOffset;
     _this.store.pageSize = _this.pageSize;
+    
+    _this.loadingMask = new loadingMask({
+      id: 'loadingMask' + _this.id,
+      masked: true,
+      maskElementId: _this.container_id
+    });
+    _this.loadingMask.render();
+    _this.loadingMask.show();
     
     //Load data when store specified
     if( _this.store ) {
@@ -1074,7 +1104,7 @@ $(document).ready( function() {
 	  },
 	  function ( v_data, v_status ) {
 	    var lv_data = $.parseJSON( v_data );
-	    _this.data = JSON.stringify( lv_data[_this.store.root] );
+	    _this.data = lv_data[_this.store.root];
 	    
 	    _this.store.data = _this.data;
 	    
@@ -1099,6 +1129,14 @@ $(document).ready( function() {
   //Sort Grid
   gridPanelChecked.prototype.sortGrid = function() {
     var _this = this;
+    
+    _this.loadingMask = new loadingMask({
+      id: 'loadingMask' + _this.id,
+      masked: true,
+      maskElementId: _this.container_id
+    });
+    _this.loadingMask.render();
+    _this.loadingMask.show();
     
     if( ( parseInt( _this.currentPageNo ) ) && ( parseInt( _this.store.totalValue ) ) ) {
       //Calculate Offset based on the current page number
@@ -1125,7 +1163,7 @@ $(document).ready( function() {
 	  },
 	  function ( v_data, v_status ) {
 	    var lv_data = $.parseJSON( v_data );
-	    _this.data = JSON.stringify( lv_data[_this.store.root] );
+	    _this.data = lv_data[_this.store.root];
 	    
 	    //Populate Data into the Grid
 	    var lv_data_div = document.getElementById( _this.container_id + "_datadiv" ); //Grid Data DIV
@@ -1150,7 +1188,7 @@ $(document).ready( function() {
 	    lv_data_table.border = 1;
 	    lv_data_table.setAttribute( "id", _this.container_id + "_data");
 	    
-	    var lv_data = $.parseJSON( _this.data );
+	    var lv_data = _this.data;
 	    var lv_header = _this.headers;
 	    
 	    $.each( lv_data, function( v_data_idx, v_data_val ) {
@@ -1228,7 +1266,7 @@ $(document).ready( function() {
 	    _this.selectedRowIndex = null;
 	    $( lv_data_table ).delegate("tr", "click", function(e) {
 		_this.selectedRowIndex = $(this).index();
-		_this.selectedRow = (_this.selectedRowIndex != null) ? JSON.stringify(lv_data[_this.selectedRowIndex]) : null;
+		_this.selectedRow = (_this.selectedRowIndex != null) ? lv_data[_this.selectedRowIndex] : null;
 	    });
 	    
 	    lv_data_div.appendChild( lv_data_table ); //Add Table to the Data DIV
@@ -1248,6 +1286,8 @@ $(document).ready( function() {
 	    if( typeof _this.afterRender === 'function' ) {
 	      _this.afterRender( _this );
 	    }
+	    
+	    _this.loadingMask.hide();
 	  }
 	);
     }
@@ -1255,7 +1295,7 @@ $(document).ready( function() {
   
   gridPanelChecked.prototype.getSelectedRecords = function() {
     var _this = this;
-    return JSON.stringify( _this.selectedRows );
+    return _this.selectedRows;
   }
   
   /*****End of code for GridPanelChecked****/
@@ -1308,7 +1348,7 @@ $(document).ready( function() {
     
     //If DATA is passed as JSON string
     if( _this.data ) {
-      var lv_data = $.parseJSON( _this.data );
+      var lv_data = _this.data;
       $.each( lv_data, function( v_idx, v_val ) {
 	var lv_opts = document.createElement("option");
 	lv_opts.value = v_val[_this.valueField];
@@ -1339,7 +1379,7 @@ $(document).ready( function() {
 	  },
 	  function ( v_data, v_status ) {
 	    var lv_data = $.parseJSON( v_data );
-	    _this.data = JSON.stringify( lv_data[_this.store.root] );
+	    _this.data = lv_data[_this.store.root];
 	    var lv_items_data = lv_data[_this.store.root];
 	    
 	    _this.store.data = _this.data;
@@ -1379,6 +1419,7 @@ $(document).ready( function() {
     this.title = (v_params.title) ? v_params.title : "";
     this.elementsDiv_id = v_params.elementsDiv_id;
     this.masked = (v_params.masked) ? v_params.masked : false;
+    this.maskElementId = (v_params.maskElementId) ? v_params.maskElementId : false;
     this.data = (v_params.data) ? v_params.data : false;
     this.buttons = (v_params.buttons) ? v_params.buttons : false;
     
@@ -1387,16 +1428,36 @@ $(document).ready( function() {
   
   windowPanel.prototype.render = function() {
     var _this = this;
+    _this.maskElementPosition = null;
     
     fn_removeChildElem( "divWinObjCont" + _this.id );
     
     var lv_divWinObjCont = document.createElement("div");
     lv_divWinObjCont.id = "divWinObjCont" + _this.id;
-    lv_divWinObjCont.style.height = "100%";
-    lv_divWinObjCont.style.width = "100%";
-    lv_divWinObjCont.style.position = "fixed";
-    lv_divWinObjCont.style.clear = "both";
-    lv_divWinObjCont.style.top = "13%";
+    
+    if( ( _this.masked ) && ( _this.maskElementId ) ) {
+      _this.maskElement = document.getElementById( _this.maskElementId );
+      _this.maskElementStyle = window.getComputedStyle( _this.maskElement, null );
+      
+      _this.maskElementPosition = fn_getPosition( _this.maskElementId );
+      
+      lv_divWinObjCont.style.height = _this.maskElementStyle.height;
+      lv_divWinObjCont.style.width = _this.maskElementStyle.width;
+      lv_divWinObjCont.style.position = "absolute";
+      if( _this.maskElementPosition.x ) {
+	lv_divWinObjCont.style.left = _this.maskElementPosition.x + "px";
+      }
+      if( _this.maskElementPosition.y ) {
+	lv_divWinObjCont.style.top = _this.maskElementPosition.y + "px";
+      }
+    }
+    else {
+      lv_divWinObjCont.style.height = "100%";
+      lv_divWinObjCont.style.width = "100%";
+      lv_divWinObjCont.style.position = "fixed";
+      lv_divWinObjCont.style.clear = "both";
+      lv_divWinObjCont.style.top = "13%";
+    }
     
     var lv_highestZIndex = fn_getHighestZIndex("body");
     
@@ -1440,6 +1501,8 @@ $(document).ready( function() {
     lv_div_title.innerHTML = _this.title;
     lv_td_title.appendChild( lv_div_title );
     lv_tr_title.appendChild( lv_td_title );
+    lv_tr_title.id = "trWinTitle" + _this.id;
+    
     lv_table.appendChild( lv_tr_title );
     
     //Window Elements Body
@@ -1458,14 +1521,32 @@ $(document).ready( function() {
       
       var lv_maskDiv = document.createElement("div");
       lv_maskDiv.id = "maskDiv" + _this.id;
-      lv_maskDiv.style.height = "100%";
-      lv_maskDiv.style.width = "100%";
+      
+      if( _this.maskElementId ) {
+	lv_maskDiv.style.display = "none";
+	lv_maskDiv.style.height = _this.maskElementStyle.height;
+	lv_maskDiv.style.width = _this.maskElementStyle.width;
+	lv_maskDiv.style.position = "absolute";
+	lv_maskDiv.style.left = _this.maskElementStyle.left;
+	lv_maskDiv.style.top = _this.maskElementStyle.top;
+	if( _this.maskElementPosition.x ) {
+	  lv_maskDiv.style.left = _this.maskElementPosition.x + "px";
+	}
+	if( _this.maskElementPosition.y ) {
+	  lv_maskDiv.style.top = _this.maskElementPosition.y + "px";
+	}
+      }
+      else {
+	lv_maskDiv.style.display = "none";
+	lv_maskDiv.style.height = "100%";
+	lv_maskDiv.style.width = "100%";
+	lv_maskDiv.style.position = "fixed";
+	lv_maskDiv.style.clear = "both";
+	lv_maskDiv.style.left = "0px";
+	lv_maskDiv.style.top = "0px";
+      }
+      
       lv_maskDiv.style.zIndex = lv_highestZIndex + 1;
-      lv_maskDiv.style.display = "none";
-      lv_maskDiv.style.position = "fixed";
-      lv_maskDiv.style.clear = "both";
-      lv_maskDiv.style.left = "0px";
-      lv_maskDiv.style.top = "0px";
       lv_maskDiv.className = "clsmask";
       
       _this.maskDiv = lv_maskDiv;
@@ -1500,6 +1581,10 @@ $(document).ready( function() {
     
     _this.obj = lv_divWinObjCont;
     document.body.appendChild( lv_divWinObjCont );
+    
+    var lv_tr_ttl = document.getElementById( "trWinTitle" + _this.id );
+    var lv_divWinObjCt = document.getElementById( "divWinObjCont" + _this.id );
+    lv_tr_ttl.onmousedown = function( v_e ) { fn_makeDraggable( lv_divWinObjCt ) };
   }
   
   windowPanel.prototype.show = function() {
@@ -1831,6 +1916,157 @@ $(document).ready( function() {
   /****End of Code for ConfirmBox***/
   
   
+  /****Code for Loading Mask************/
+  
+  //Constructor Method
+  loadingMask = function( v_params ) {
+    this.id = v_params.id;
+    this.masked = (v_params.masked) ? v_params.masked : false;
+    this.maskElementId = (v_params.maskElementId) ? v_params.maskElementId : false;
+    this.contElementId = (v_params.contElementId) ? v_params.contElementId : false;
+    
+    return this;
+  }
+  
+  loadingMask.prototype.render = function() {
+    var _this = this;
+    
+    var lv_checkExists = document.getElementById( "maskDiv" + _this.maskElementId );
+    
+    if( lv_checkExists != undefined ) {
+      document.body.removeChild( lv_checkExists );
+    }
+    
+      var lv_div_loading = document.createElement("div");
+	var lv_loadDivMarginTop = 0;
+	  lv_div_loading.id = "divObj" + _this.id;
+	  lv_div_loading.style.position = "relative";
+	  lv_div_loading.style.overflow = "hidden";
+	  lv_div_loading.style.display = "table";
+      var lv_frameTable = document.createElement("table");
+	  lv_frameTable.cellSpacing = "0";
+	  lv_frameTable.cellPadding = "0";
+      var lv_frameTr = document.createElement("tr");
+      var lv_frameTdLeft = document.createElement("td");
+	  lv_frameTdLeft.className = "clsldfrleft";
+      var lv_frameTdMid = document.createElement("td");
+	  lv_frameTdMid.className = "clsldfrmid";
+      var lv_frameTdRight = document.createElement("td");
+	  lv_frameTdRight.className = "clsldfrright";
+      
+      var lv_elementTable = document.createElement("table");
+      var lv_elementTr = document.createElement("tr");
+      var lv_elementTdImg = document.createElement("td");
+      var lv_elementImgDiv = document.createElement("div");
+	  lv_elementImgDiv.className = "clsldimgelm";
+      var lv_elementTdText = document.createElement("td");
+	  lv_elementTdText.className = "clsldtextelm";
+	  lv_elementTdText.innerHTML = "Loading...";
+	  
+	  lv_elementTdImg.appendChild( lv_elementImgDiv );
+	  lv_elementTr.appendChild( lv_elementTdImg );
+	  lv_elementTr.appendChild( lv_elementTdText );
+	  lv_elementTable.appendChild( lv_elementTr );
+	  
+	  lv_frameTdMid.appendChild( lv_elementTable );
+	  
+	  lv_frameTr.appendChild( lv_frameTdLeft );
+	  lv_frameTr.appendChild( lv_frameTdMid );
+	  lv_frameTr.appendChild( lv_frameTdRight );
+	  lv_frameTable.appendChild( lv_frameTr );
+	  lv_div_loading.appendChild( lv_frameTable );
+	  
+      var lv_highestZIndex = fn_getHighestZIndex("body");
+      
+      if( ( _this.masked ) && ( _this.maskElementId ) ) {
+	var lv_element = document.getElementById( _this.maskElementId );
+	var lv_maskElementPosition = fn_getPosition( _this.maskElementId );
+	var lv_maskElementStyle = window.getComputedStyle( lv_element, null );
+	var lv_maskDiv = document.createElement("div");
+	
+	//Calculate Top Margin for displaying the 'Loading' Div in middle
+	lv_loadDivMarginTop = parseInt( lv_maskElementStyle.height.substring( 0, parseInt( lv_maskElementStyle.height.length - 2 ) ) ) / 2 - 30;
+	lv_div_loading.style.marginTop = lv_loadDivMarginTop + "px";
+	lv_div_loading.style.marginRight = "auto";
+	lv_div_loading.style.marginBottom = "0px"
+	lv_div_loading.style.marginLeft = "auto";
+	
+	lv_maskDiv.id = "maskDiv" + _this.maskElementId;
+	
+	lv_maskDiv.style.display = "none";
+	lv_maskDiv.style.height = lv_maskElementStyle.height;
+	lv_maskDiv.style.width = lv_maskElementStyle.width;
+	lv_maskDiv.style.position = "absolute";
+	lv_maskDiv.style.left = lv_maskElementStyle.left;
+	lv_maskDiv.style.top = lv_maskElementStyle.top;
+	if( lv_maskElementPosition.x ) {
+	  lv_maskDiv.style.left = lv_maskElementPosition.x + "px";
+	}
+	if( lv_maskElementPosition.y ) {
+	  lv_maskDiv.style.top = lv_maskElementPosition.y + "px";
+	}
+	
+	lv_maskDiv.style.zIndex = lv_highestZIndex + 1;
+	lv_maskDiv.className = "clsmask";
+	
+	lv_maskDiv.appendChild( lv_div_loading );
+	
+	_this.loadingDiv = lv_maskDiv;
+      }
+      else if( _this.contElementId ) {
+	var lv_elementCont = document.getElementById( _this.contElementId );
+	var lv_contElementPosition = fn_getPosition( _this.contElementId );
+	var lv_contElementStyle = window.getComputedStyle( lv_elementCont, null );
+	var lv_contDiv = document.createElement("div");
+	
+	//Calculate Top Margin for displaying the 'Loading' Div in middle
+	lv_loadDivMarginTop = parseInt( lv_contElementStyle.height.substring( 0, parseInt( lv_contElementStyle.height.length - 2 ) ) ) / 2 - 30;
+	lv_div_loading.style.marginTop = lv_loadDivMarginTop + "px";
+	lv_div_loading.style.marginRight = "auto";
+	lv_div_loading.style.marginBottom = "0px"
+	lv_div_loading.style.marginLeft = "auto";
+	
+	lv_contDiv.id = "contDiv" + _this.contElementId;
+	
+	lv_contDiv.style.display = "none";
+	lv_contDiv.style.width = lv_contElementStyle.width;
+	lv_contDiv.style.position = "absolute";
+	lv_contDiv.style.left = lv_contElementStyle.left;
+	lv_contDiv.style.top = lv_contElementStyle.top;
+	if( lv_contElementPosition.x ) {
+	  lv_contDiv.style.left = lv_contElementPosition.x + "px";
+	}
+	if( lv_contElementPosition.y ) {
+	  lv_contDiv.style.top = lv_contElementPosition.y + "px";
+	}
+	
+	lv_contDiv.style.zIndex = lv_highestZIndex + 1;
+	lv_contDiv.className = "clsmask";
+	
+	lv_contDiv.appendChild( lv_div_loading );
+	
+	_this.loadingDiv = lv_contDiv;
+      }
+      
+      document.body.appendChild( _this.loadingDiv );
+      
+  }
+  
+  loadingMask.prototype.show = function() {
+    var _this = this;
+    
+    _this.loadingDiv.style.display = "table";
+  }
+  
+  loadingMask.prototype.hide = function() {
+    var _this = this;
+    
+    _this.loadingDiv.style.display = "none";
+  }
+  
+  /***End of code for Loading Mask*****/
+  
+  
   /***Functions***/
   
   //Alert
@@ -1858,7 +2094,7 @@ $(document).ready( function() {
   
   //Function to Assign values to the DIV container's child elements
   fn_assignValues_to_window = function( v_divElmt, v_data ) {
-    var lv_data = $.parseJSON( v_data );
+    var lv_data = v_data;
     
     for(var v_key in lv_data ) {
       $( v_divElmt ).find( "#" + v_key ).html( lv_data[v_key] );
@@ -2137,5 +2373,124 @@ $(document).ready( function() {
     
     return lv_btn_table;
   }
+  
+  fn_clearElments = function( v_id ) {
+    $( ":input", "#" + v_id ).each( function() {
+      var _this = this;
+      var lv_type = _this.type;
+	
+	switch( lv_type ) {
+	  case 'text':
+	    _this.value = "";
+	    break;
+	  case 'checkbox':
+	    _this.checked = false;
+	    break;
+	  case 'button':
+	    break;
+	  default:
+	    _this.value = "";
+	}
+    });
+    
+    $( ":select", "#" + v_id ).each( function() {
+      var _this = this;
+      _this.selectedIndex = -1;
+    });
+    
+    $( ":textarea", "#" + v_id ).each( function() {
+      var _this = this;
+      _this.value = "";
+    });
+  }
+  
+  fn_getPosition = function( v_elementId ) {
+    var lv_element = document.getElementById( v_elementId );
+    var lv_xPosition = 0;
+    var lv_yPosition = 0;
+    
+    while( lv_element ) {
+        lv_xPosition += (lv_element.offsetLeft - lv_element.scrollLeft + lv_element.clientLeft);
+        lv_yPosition += (lv_element.offsetTop - lv_element.scrollTop + lv_element.clientTop);
+        lv_element = lv_element.offsetParent;
+    }
+    
+    var lv_doc = document.documentElement;
+    var lv_win_left = (window.pageXOffset || lv_doc.scrollLeft) - (lv_doc.clientLeft || 0);
+    var lv_win_top = (window.pageYOffset || lv_doc.scrollTop)  - (lv_doc.clientTop || 0);
+    
+    lv_xPosition += lv_win_left;
+    lv_yPosition += lv_win_top;
+    
+    return { x: lv_xPosition, y: lv_yPosition };
+  }
+  
+  //Code to move objects
+	var gv_dragObject  = null;
+	var gv_mouseOffset = null;
+	
+	fn_mouseCoords = function(v_ev){ 
+	    if(v_ev.pageX || v_ev.pageY){ 
+	        return {x:v_ev.pageX, y:v_ev.pageY}; 
+	    } 
+	    return { 
+	        x:v_ev.clientX + document.body.scrollLeft - document.body.clientLeft, 
+	        y:v_ev.clientY + document.body.scrollTop  - document.body.clientTop 
+	    };
+	}
+	
+	fn_getElementPosition = function( v_element ) {
+	  var lv_element = v_element;
+	  var lv_xPosition = 0;
+	  var lv_yPosition = 0;
+	  
+	  while( lv_element ) {
+	      lv_xPosition += (lv_element.offsetLeft - lv_element.scrollLeft + lv_element.clientLeft);
+	      lv_yPosition += (lv_element.offsetTop - lv_element.scrollTop + lv_element.clientTop);
+	      lv_element = lv_element.offsetParent;
+	  }
+	  
+	  var lv_doc = document.documentElement;
+	  var lv_win_left = (window.pageXOffset || lv_doc.scrollLeft) - (lv_doc.clientLeft || 0);
+	  var lv_win_top = (window.pageYOffset || lv_doc.scrollTop)  - (lv_doc.clientTop || 0);
+	  
+	  lv_xPosition += lv_win_left;
+	  lv_yPosition += lv_win_top;
+	  
+	  return { x: lv_xPosition, y: lv_yPosition };
+	}
+	
+	fn_getMouseOffset = function( v_target, v_ev ){ 
+	    v_ev = v_ev || window.event; 
+	    var docPos       = fn_getElementPosition( v_target );
+	    var lv_mousePos  = fn_mouseCoords(v_ev); 
+	    return {x:lv_mousePos.x - docPos.x, y:lv_mousePos.y - docPos.y}; 
+	}
+	
+	fn_mouseMove = function( v_ev ){ 
+	    v_ev = v_ev || window.event; 
+	    var lv_mousePos = fn_mouseCoords(v_ev); 
+	    if( gv_dragObject ){
+	        gv_dragObject.style.position = 'absolute'; 
+	        gv_dragObject.style.top      = lv_mousePos.y - gv_mouseOffset.y; 
+	        gv_dragObject.style.left     = lv_mousePos.x - gv_mouseOffset.x; 
+	    }
+	}
+	
+	fn_mouseUp = function() {
+	    gv_dragObject = null; 
+	}
+	
+	fn_makeDraggable = function( v_item ){
+	    if(!v_item) return; 
+	    v_item.onmousedown = function(v_ev){ 
+	        gv_dragObject  = this; 
+	        gv_mouseOffset = fn_getMouseOffset(this, v_ev); 
+	    }
+	}
+	
+	document.onmousemove = fn_mouseMove;
+	document.onmouseup   = fn_mouseUp;
+  //End of code to move objects
   
 });
