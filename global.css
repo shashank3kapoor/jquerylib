@@ -23,6 +23,7 @@ th.clsgrdheaderasc span.clsgrdheaderimg { background-image: url('/images/up.png'
 th.clsgrdheaderdesc span.clsgrdheaderimg { background-image: url('/images/down.png'); position: relative; float: left; }
 th span.clsgrdheadertxt { position: relative; float: left; margin-left: 3px; }
 td.clsalertbtn, td.clsalerttxttd { text-align: center; font-size:12px; FONT-FAMILY: Arial; }
+td.clsalertbtn div input[type="button"] { margin: 0px 3px 0px 3px; }
 .clsselected td { background-color: lightblue; cursor: url('/images/curnw.cur'), pointer; }
 div.clsgrdpagcont { overflow: hidden; border: 1px solid #999999; }
 div.clsgrdpagcont table { font-size:12px; FONT-FAMILY: Arial; }
@@ -57,3 +58,9 @@ td.clspagoftxt { text-align: left; }
 th.clshdrchkbox, td.clsdatachkbox { width: 13px; }
 th.clshdrchkbox input[type="checkbox"] { float: left; }
 td.clsdatachkbox input[type="checkbox"] { float: left; }
+div.clsmask { background-image: url('/images/mask.png'); background-repeat: repeat; }
+div.clsldimgelm { background-image: url('/images/loading.gif'); background-repeat: no-repeat; width: 16px; height: 16px; }
+td.clsldtextelm { line-height: 16px; }
+td.clsldfrleft { background-image: url('/images/loading-sprite-backgrd.png'); background-position: 0px 0px; background-repeat: no-repeat; height: 30px; width: 4px; margin: 0; padding: 0; }
+td.clsldfrmid { background-image: url('/images/loading-sprite-backgrd.png'); background-position: 0px -60px; background-repeat: repeat-x; height: 30px; width: auto; margin: 0; padding: 0; }
+td.clsldfrright { background-image: url('/images/loading-sprite-backgrd.png'); background-position: 0px -30px; background-repeat: no-repeat; height: 30px; width: 4px; margin: 0; padding: 0; }
