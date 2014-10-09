@@ -62,5 +62,5 @@ div.clsmask { background-image: url('/images/mask.png'); background-repeat: repe
 div.clsldimgelm { background-image: url('/images/loading.gif'); background-repeat: no-repeat; width: 16px; height: 16px; }
 td.clsldtextelm { line-height: 16px; }
 td.clsldfrleft { background-image: url('/images/loading-sprite-backgrd.png'); background-position: 0px 0px; background-repeat: no-repeat; height: 30px; width: 4px; margin: 0; padding: 0; }
-td.clsldfrmid { background-image: url('/images/loading-sprite-backgrd.png'); background-position: 0px -60px; background-repeat: repeat-x; height: 30px; width: auto; margin: 0; padding: 0; }
+td.clsldfrmid { background-image: url('/images/loading-sprite-backgrd.png'); background-position: 0px -60px; background-repeat: repeat-x; height: 30px; width: auto; margin: 0; padding: 0; vertical-align: middle; }
 td.clsldfrright { background-image: url('/images/loading-sprite-backgrd.png'); background-position: 0px -30px; background-repeat: no-repeat; height: 30px; width: 4px; margin: 0; padding: 0; }
