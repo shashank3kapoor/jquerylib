@@ -1437,7 +1437,7 @@ $(document).ready( function() {
     
     if( ( _this.masked ) && ( _this.maskElementId ) ) {
       _this.maskElement = document.getElementById( _this.maskElementId );
-      _this.maskElementStyle = window.getComputedStyle( _this.maskElement, null );
+      _this.maskElementStyle = fn_getComputedStyle( _this.maskElement );
       
       _this.maskElementPosition = fn_getPosition( _this.maskElementId );
       
@@ -1939,6 +1939,7 @@ $(document).ready( function() {
     
       var lv_div_loading = document.createElement("div");
 	var lv_loadDivMarginTop = 0;
+	var lv_numericHeight = 0;
 	  lv_div_loading.id = "divObj" + _this.id;
 	  lv_div_loading.style.position = "relative";
 	  lv_div_loading.style.overflow = "hidden";
@@ -1981,15 +1982,21 @@ $(document).ready( function() {
       if( ( _this.masked ) && ( _this.maskElementId ) ) {
 	var lv_element = document.getElementById( _this.maskElementId );
 	var lv_maskElementPosition = fn_getPosition( _this.maskElementId );
-	var lv_maskElementStyle = window.getComputedStyle( lv_element, null );
+	var lv_maskElementStyle = fn_getComputedStyle( lv_element );
 	var lv_maskDiv = document.createElement("div");
 	
 	//Calculate Top Margin for displaying the 'Loading' Div in middle
-	lv_loadDivMarginTop = parseInt( lv_maskElementStyle.height.substring( 0, parseInt( lv_maskElementStyle.height.length - 2 ) ) ) / 2 - 30;
-	lv_div_loading.style.marginTop = lv_loadDivMarginTop + "px";
-	lv_div_loading.style.marginRight = "auto";
-	lv_div_loading.style.marginBottom = "0px"
-	lv_div_loading.style.marginLeft = "auto";
+	lv_numericHeight = parseInt( lv_maskElementStyle.height.substring( 0, parseInt( lv_maskElementStyle.height.length - 2 ) ) );
+	if( !isNaN( lv_numericHeight ) ) {
+	  lv_loadDivMarginTop = lv_numericHeight / 2 - 30;
+	  lv_div_loading.style.marginTop = lv_loadDivMarginTop + "px";
+	  lv_div_loading.style.marginRight = "auto";
+	  lv_div_loading.style.marginBottom = "0px"
+	  lv_div_loading.style.marginLeft = "auto";
+	}
+	else {
+	  lv_div_loading.style.margin = "auto auto";
+	}
 	
 	lv_maskDiv.id = "maskDiv" + _this.maskElementId;
 	
@@ -2016,15 +2023,21 @@ $(document).ready( function() {
       else if( _this.contElementId ) {
 	var lv_elementCont = document.getElementById( _this.contElementId );
 	var lv_contElementPosition = fn_getPosition( _this.contElementId );
-	var lv_contElementStyle = window.getComputedStyle( lv_elementCont, null );
+	var lv_contElementStyle = fn_getComputedStyle( lv_elementCont );
 	var lv_contDiv = document.createElement("div");
 	
 	//Calculate Top Margin for displaying the 'Loading' Div in middle
-	lv_loadDivMarginTop = parseInt( lv_contElementStyle.height.substring( 0, parseInt( lv_contElementStyle.height.length - 2 ) ) ) / 2 - 30;
-	lv_div_loading.style.marginTop = lv_loadDivMarginTop + "px";
-	lv_div_loading.style.marginRight = "auto";
-	lv_div_loading.style.marginBottom = "0px"
-	lv_div_loading.style.marginLeft = "auto";
+	lv_numericHeight = parseInt( lv_contElementStyle.height.substring( 0, parseInt( lv_contElementStyle.height.length - 2 ) ) );
+	if( !isNaN( lv_numericHeight ) ) {
+	  lv_loadDivMarginTop = lv_numericHeight / 2 - 30;
+	  lv_div_loading.style.marginTop = lv_loadDivMarginTop + "px";
+	  lv_div_loading.style.marginRight = "auto";
+	  lv_div_loading.style.marginBottom = "0px"
+	  lv_div_loading.style.marginLeft = "auto";
+	}
+	else {
+	  lv_div_loading.style.margin = "auto auto";
+	}
 	
 	lv_contDiv.id = "contDiv" + _this.contElementId;
 	
@@ -2124,6 +2137,23 @@ $(document).ready( function() {
       }
     }
     return lv_highest;
+  }
+  
+  //Get Computed Style
+  fn_getComputedStyle = function( v_elem ) {
+    var lv_computedStyle = null;
+    
+    if( document.defaultView && document.defaultView.getComputedStyle ) {
+      lv_computedStyle = document.defaultView.getComputedStyle( v_elem, null );
+    }
+    else if( v_elem.currentStyle ) {
+      lv_computedStyle = v_elem.currentStyle;
+    }
+    else {
+      lv_computedStyle = v_elem.style;
+    }
+    
+    return lv_computedStyle;
   }
   
   //Remove Child Element
@@ -2415,12 +2445,17 @@ $(document).ready( function() {
         lv_element = lv_element.offsetParent;
     }
     
-    var lv_doc = document.documentElement;
-    var lv_win_left = (window.pageXOffset || lv_doc.scrollLeft) - (lv_doc.clientLeft || 0);
-    var lv_win_top = (window.pageYOffset || lv_doc.scrollTop)  - (lv_doc.clientTop || 0);
+    var lv_ua = window.navigator.userAgent;
+    var lv_msie = lv_ua.indexOf("MSIE ");
     
-    lv_xPosition += lv_win_left;
-    lv_yPosition += lv_win_top;
+    if( lv_msie == -1 ) {
+      var lv_doc = document.documentElement;
+      var lv_win_left = (window.pageXOffset || lv_doc.scrollLeft) - (lv_doc.clientLeft || 0);
+      var lv_win_top = (window.pageYOffset || lv_doc.scrollTop)  - (lv_doc.clientTop || 0);
+      
+      lv_xPosition += lv_win_left;
+      lv_yPosition += lv_win_top;
+    }
     
     return { x: lv_xPosition, y: lv_yPosition };
   }
