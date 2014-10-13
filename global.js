@@ -1923,7 +1923,7 @@ $(document).ready( function() {
     this.id = v_params.id;
     this.masked = (v_params.masked) ? v_params.masked : false;
     this.maskElementId = (v_params.maskElementId) ? v_params.maskElementId : false;
-    this.contElementId = (v_params.contElementId) ? v_params.contElementId : false;
+    this.displayText = (v_params.displayText) ? v_params.displayText : 'Loading...';
     
     return this;
   }
@@ -1962,7 +1962,7 @@ $(document).ready( function() {
 	  lv_elementImgDiv.className = "clsldimgelm";
       var lv_elementTdText = document.createElement("td");
 	  lv_elementTdText.className = "clsldtextelm";
-	  lv_elementTdText.innerHTML = "Loading...";
+	  lv_elementTdText.innerHTML = _this.displayText;
 	  
 	  lv_elementTdImg.appendChild( lv_elementImgDiv );
 	  lv_elementTr.appendChild( lv_elementTdImg );
@@ -2020,9 +2020,9 @@ $(document).ready( function() {
 	
 	_this.loadingDiv = lv_maskDiv;
       }
-      else if( _this.contElementId ) {
-	var lv_elementCont = document.getElementById( _this.contElementId );
-	var lv_contElementPosition = fn_getPosition( _this.contElementId );
+      else if( _this.maskElementId ) {
+	var lv_elementCont = document.getElementById( _this.maskElementId );
+	var lv_contElementPosition = fn_getPosition( _this.maskElementId );
 	var lv_contElementStyle = fn_getComputedStyle( lv_elementCont );
 	var lv_contDiv = document.createElement("div");
 	
@@ -2039,7 +2039,7 @@ $(document).ready( function() {
 	  lv_div_loading.style.margin = "auto auto";
 	}
 	
-	lv_contDiv.id = "contDiv" + _this.contElementId;
+	lv_contDiv.id = "contDiv" + _this.maskElementId;
 	
 	lv_contDiv.style.display = "none";
 	lv_contDiv.style.width = lv_contElementStyle.width;
