@@ -1,11 +1,4 @@
 <?php
-/*	Modification History
-	******************************************************************************************************
-	Date			05 Aug 2014
-	By		        Shashank Kapoor
-	Description		Person Match Register
-	******************************************************************************************************
-*/
 session_start();
 
   if( isset( $_SESSION["version"] ) && ( $_SESSION["version"] ) ) {
