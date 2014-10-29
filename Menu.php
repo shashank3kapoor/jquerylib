@@ -1,13 +1,5 @@
 <?php
-/*
-	Modification History
-	******************************************************************************************************
-	Date			08 Sept 2014
-	By			Shashank Kapoor
-	Description		Module, Element and Menu Classes
-	******************************************************************************************************
 
-*/
 session_start();
 
 Class Module {
