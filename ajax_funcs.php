@@ -1,11 +1,5 @@
 <?php
-/*	Modification History
-	******************************************************************************************************
-	Date			31 July 2014
-	By		        Shashank Kapoor
-	Description		To get data from database
-	******************************************************************************************************
-*/
+
 session_start();
 
   $method = ( isset( $_POST["method"] ) ) ? "fn_".$_POST["method"] : null;
