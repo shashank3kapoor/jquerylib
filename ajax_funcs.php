@@ -11,6 +11,9 @@ session_start();
   $method = ( isset( $_POST["method"] ) ) ? "fn_".$_POST["method"] : null;
   $params = ( isset( $_POST["params"] ) ) ? $_POST["params"] : array();
   $exParams = ( isset( $_POST["exParams"] ) ) ? $_POST["exParams"] : array();
+  if( $params == 'false' ) {
+    $params = false;
+  }
   if( $exParams != 'false' ) {
     if( $params != 'false' ) {
       $params = array_merge( $params, $exParams );
