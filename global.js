@@ -81,6 +81,7 @@ $(document).ready( function() {
     this.selectedRowIndex = null;
     this.selectedRow = null;
     this.afterRender = (v_params.afterRender) ? v_params.afterRender : false;
+    this.showTotalCount = (v_params.showTotalCount) ? v_params.showTotalCount : false;
     
     return this;
   }
@@ -494,6 +495,15 @@ $(document).ready( function() {
       var lv_page_td_total_pgs = document.createElement("td"); //total pages
 	  lv_page_td_total_pgs.className = "clspagoftxt";
       
+      if( _this.showTotalCount ) {
+	var lv_total_record_td = document.createElement("td");
+	    lv_total_record_td.className = "clstotrecs";
+	var lv_total_recs_label = document.createElement("label");
+	    lv_total_recs_label.innerHTML = "Total Records: " + _this.store.totalValue;
+	    lv_total_record_td.appendChild( lv_total_recs_label );
+      }
+      
+      
       var lv_page_first_div = document.createElement("div"); //first div
       var lv_page_previous_div = document.createElement("div"); //previous div
       var lv_page_next_div = document.createElement("div"); //next div
@@ -536,6 +546,10 @@ $(document).ready( function() {
       lv_page_tr.appendChild( lv_page_td_last );
       lv_page_tr.appendChild( lv_page_td_curr_pg );
       lv_page_tr.appendChild( lv_page_td_total_pgs );
+      
+      if( _this.showTotalCount ) {
+	lv_page_tr.appendChild( lv_total_record_td );
+      }
       
       lv_page_table.appendChild( lv_page_tr );
       
@@ -1452,9 +1466,8 @@ $(document).ready( function() {
       }
     }
     else {
-      lv_divWinObjCont.style.height = "100%";
-      lv_divWinObjCont.style.width = "100%";
-      lv_divWinObjCont.style.position = "fixed";
+      lv_divWinObjCont.style.width = "99%";
+      lv_divWinObjCont.style.position = "absolute";
       lv_divWinObjCont.style.clear = "both";
       lv_divWinObjCont.style.top = "13%";
     }
@@ -1610,7 +1623,81 @@ $(document).ready( function() {
   /****End of Code for WindowPanel***/
   
   
+  /****Code for Menu***/
   
+  settingsMenuPanel = function( v_params ) {
+    this.id = v_params.id;
+    this.data = (v_params.data) ? v_params.data : false;
+    this.container_id = v_params.container_id;
+    
+    return this;
+  }
+  
+  settingsMenuPanel.prototype.render = function() {
+    var _this = this;
+    var lv_container_elm = document.getElementById( _this.container_id );
+    
+    if( _this.data ) {
+      var lv_menu = _this.data.menu;
+      
+      var lv_cont_ul = document.createElement("ul");
+	  lv_cont_ul.id = "ulcontmenu";
+	  lv_cont_ul.style.zIndex = "143";
+      var lv_setting_li = document.createElement("li");
+      var lv_setting_a_cont = document.createElement("a");
+	  lv_setting_a_cont.href = "#";
+      var lv_setting_div_cont = document.createElement("div");
+	  lv_setting_div_cont.id = "divsettingcont";
+      var lv_setting_div = document.createElement("div");
+	  lv_setting_div.id = "divsettingimg";
+	  lv_setting_div.style.backgroundImage = "url('/images/icon_settings.png')";
+	  lv_setting_div.style.backgroundSize = "32px 32px";
+	  lv_setting_div.style.backgroundRepeat = "no-repeat";
+	  lv_setting_div.style.width = "32px";
+	  lv_setting_div.style.height = "32px";
+	lv_setting_div_cont.appendChild( lv_setting_div );
+	lv_setting_a_cont.appendChild( lv_setting_div_cont );
+	lv_setting_li.appendChild( lv_setting_a_cont );
+	
+      var lv_menu_div_cont = document.createElement("div");
+	  lv_menu_div_cont.id = "divsettingnav";
+      var lv_menu_cont_ul = document.createElement("ul");
+	  lv_menu_cont_ul.id = "ulmenucont";
+      
+      $.each( lv_menu, function( v_idx, v_val ) {
+	var lv_menu_li = document.createElement("li");
+	var lv_trsfm_div_cont = document.createElement("div");
+	var lv_menu_span = document.createElement("span");
+	
+	lv_menu_li.id = "li" + v_val.menu.id;
+	lv_menu_span.innerHTML = v_val.menu.name;
+	lv_menu_li.onclick = function() {
+	  window.location = v_val.menu.link;
+	};
+	lv_trsfm_div_cont.appendChild( lv_menu_span );
+	lv_menu_li.appendChild( lv_trsfm_div_cont );
+	
+	var lv_submenu_obj = false;
+	if( ( v_val.menu.submenu ) && ( v_val.menu.submenu != 'false' ) ) {
+	  lv_submenu_obj = fn_createSubMenu( v_val.menu.submenu );
+	}
+	
+	if( lv_submenu_obj ) {
+	  lv_menu_li.appendChild( lv_submenu_obj );
+	}
+	
+	
+	lv_menu_cont_ul.appendChild( lv_menu_li );
+      });
+      
+      lv_menu_div_cont.appendChild( lv_menu_cont_ul );
+      lv_setting_li.appendChild( lv_menu_div_cont );
+      lv_cont_ul.appendChild( lv_setting_li );
+      lv_container_elm.appendChild( lv_cont_ul );
+    }
+  }
+  
+  /****End of code for Menu***/
   
   
   /****Code for AlertBox***/
@@ -2113,6 +2200,36 @@ $(document).ready( function() {
       $( v_divElmt ).find( "#" + v_key ).html( lv_data[v_key] );
     }
     
+  }
+  
+  //Create Sub Menu
+  fn_createSubMenu = function( v_data ) {
+    var lv_ul = document.createElement("ul");
+    
+    $.each( v_data, function( v_idx, v_val ) {
+      var lv_li = document.createElement("li");
+      var lv_span = document.createElement("span");
+      
+      lv_li.id = "li" + v_val.menu.id;
+      lv_span.innerHTML = v_val.menu.name;
+      lv_li.onclick = function() {
+	window.location = v_val.menu.link;
+      };
+      lv_li.appendChild( lv_span );
+      
+      var lv_submenu_obj = false;
+      if( ( v_val.menu.submenu ) && ( v_val.menu.submenu != 'false' ) ) {
+	lv_submenu_obj = fn_createSubMenu( v_val.menu.submenu );
+      }
+      
+      if( lv_submenu_obj ) {
+	lv_li.appendChild( lv_submenu_obj );
+      }
+      
+      lv_ul.appendChild( lv_li );
+    });
+    
+    return lv_ul;
   }
   
   //Get Hightest Z-Index
