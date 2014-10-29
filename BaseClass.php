@@ -1,13 +1,5 @@
 <?php
-/*
-	Modification History
-	******************************************************************************************************
-	Date			08 Sept 2014
-	By			Shashank Kapoor
-	Description		BaseClass for basic functionality
-	******************************************************************************************************
 
-*/
 session_start();
 
 Class BaseClass {
