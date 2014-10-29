@@ -1,13 +1,5 @@
 <?php
-/*
-	Modification History
-	******************************************************************************************************
-	Date			08 Sept 2014
-	By			Shashank Kapoor
-	Description		Customer Relationship Model
-	******************************************************************************************************
 
-*/
 $root = realpath( $_SERVER["DOCUMENT_ROOT"] );
 
 include_once $root."/comcls/BaseClass.php";
