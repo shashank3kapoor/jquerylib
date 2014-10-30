@@ -1,5 +1,4 @@
 
-
 $(document).ready( function() {
 
 /*****Code for DataStore****/
@@ -2160,6 +2159,159 @@ $(document).ready( function() {
   
   /***End of code for Loading Mask*****/
   
+  /***Code for greenCheck*******/
+  //Constructor Method
+  greenCheck = function( v_params ) {
+    this.id = v_params.id;
+    this.checkFieldId = (v_params.checkFieldId) ? v_params.checkFieldId : false;
+    this.contDiv = document.createElement("div");
+    
+    return this;
+  }
+  
+  greenCheck.prototype.render = function() {
+    var _this = this;
+    
+    fn_removeChildElem( "contDiv" + _this.id );
+    
+    var lv_contDiv = document.createElement("div");
+	lv_contDiv.style.display = "none";
+	lv_contDiv.id = "contDiv" + _this.id;
+	lv_contDiv.className = "clsgrncont";
+	
+    var lv_table = document.createElement("table");
+	lv_table.cellSpacing = "0";
+	lv_table.cellPadding = "0";
+    var lv_tr = document.createElement("tr");
+    var lv_td_img = document.createElement("td");
+    var lv_div_img = document.createElement("div");
+    
+    lv_td_img.className = "clsimgok";
+    
+    lv_td_img.appendChild( lv_div_img );
+    lv_tr.appendChild( lv_td_img );
+    lv_table.appendChild( lv_tr );
+    
+    lv_contDiv.appendChild( lv_table );
+    
+    var lv_chkElm = document.getElementById( _this.checkFieldId );
+    var lv_parentNode = lv_chkElm.parentNode;
+    if ( lv_parentNode != undefined ) {
+      lv_parentNode.appendChild( lv_contDiv );
+    }
+    else {
+      document.body.appendChild( lv_contDiv );
+    }
+    
+    _this.contDiv = lv_contDiv;
+  }
+  
+  greenCheck.prototype.show = function() {
+    var _this = this;
+    
+    _this.contDiv.style.display = "block";
+  }
+  
+  greenCheck.prototype.hide = function() {
+    var _this = this;
+    
+    _this.contDiv.style.display = "none";
+  }
+  
+  greenCheck.prototype.remove = function() {
+    var _this = this;
+    
+    fn_removeChildElem( "contDiv" + _this.id );
+  }
+  
+  /***End of code for greenCheck*******/
+  
+  /***Code for ErrorMsg*******/
+  //Constructor Method
+  errorMsg = function( v_params ) {
+    this.id = v_params.id;
+    this.errorFieldId = (v_params.errorFieldId) ? v_params.errorFieldId : false;
+    this.errorText = (v_params.errorText) ? v_params.errorText : '';
+    this.contDiv = document.createElement("div");
+    
+    return this;
+  }
+  
+  errorMsg.prototype.setErrorText = function( v_txt ) {
+    this.errorText = v_txt;
+  }
+  
+  errorMsg.prototype.render = function() {
+    var _this = this;
+    
+    fn_removeChildElem( "contDiv" + _this.id );
+    
+    var lv_contDiv = document.createElement("div");
+	lv_contDiv.style.display = "none";
+	lv_contDiv.id = "contDiv" + _this.id;
+	lv_contDiv.className = "clserrcont";
+    
+    var lv_highestZIndex = fn_getHighestZIndex("body");
+	lv_contDiv.style.zIndex = parseInt( lv_highestZIndex ) + 1;
+    
+    if( _this.errorFieldId ) {
+      var lv_elementCont = document.getElementById( _this.errorFieldId );
+      var lv_contElementStyle = fn_getComputedStyle( lv_elementCont );
+      var lv_contElementPosition = fn_getPosition( _this.errorFieldId );
+      var lv_contNumericTop = parseInt( lv_contElementPosition.y );
+      var lv_contNumericLeft = parseInt( lv_contElementPosition.x );
+      var lv_contNumericHeight = parseInt( lv_contElementStyle.height.substring( 0, parseInt( lv_contElementStyle.height.length - 2 ) ) );
+      
+      if( !$.isNumeric( lv_contNumericHeight ) ) {
+	lv_contNumericHeight = 7;
+      }
+      
+      lv_contDiv.style.position = "absolute";
+      lv_contDiv.style.left = ( lv_contNumericLeft + 5 ) + "px";
+      lv_contDiv.style.top = ( lv_contNumericTop + lv_contNumericHeight + 5 ) + "px";
+    }
+    
+    var lv_table = document.createElement("table");
+    var lv_tr = document.createElement("tr");
+    var lv_td_img = document.createElement("td");
+    var lv_td_txt = document.createElement("td");
+    var lv_div_img = document.createElement("div");
+    
+    lv_td_img.className = "clsimgerr";
+    lv_td_txt.className = "clstxterr";
+    lv_td_txt.innerHTML = _this.errorText;
+    
+    lv_td_img.appendChild( lv_div_img );
+    lv_tr.appendChild( lv_td_img );
+    lv_tr.appendChild( lv_td_txt );
+    lv_table.appendChild( lv_tr );
+    
+    lv_contDiv.appendChild( lv_table );
+    
+    document.body.appendChild( lv_contDiv );
+    
+    _this.contDiv = lv_contDiv;
+  }
+  
+  errorMsg.prototype.show = function() {
+    var _this = this;
+    
+    _this.contDiv.style.display = "block";
+  }
+  
+  errorMsg.prototype.hide = function() {
+    var _this = this;
+    
+    _this.contDiv.style.display = "none";
+  }
+  
+  errorMsg.prototype.remove = function() {
+    var _this = this;
+    
+    fn_removeChildElem( "contDiv" + _this.id );
+  }
+  
+  /***End of code for ErrorMsg*******/
   
   /***Functions***/
   
@@ -2307,6 +2459,20 @@ $(document).ready( function() {
       setCookie(name,"",-1);
   }
   
+  fn_splice_array_elm_by_val = function( v_chk_val, v_arry ) {
+    $.each( v_arry, function( v_idx, v_val ) {
+      if( v_val == v_chk_val ) {
+	v_arry.splice( v_idx, 1 );
+	return false;
+      }
+      else {
+	return true;
+      }
+    });
+    
+    return v_arry;
+  }
+  
   fn_search_array_by_val = function ( v_srchArry, v_srchVal ) {
     var lv_retArry = v_srchArry;
     var lv_found = false;
@@ -2384,6 +2550,7 @@ $(document).ready( function() {
       case "INPUT":
 	switch( v_elm.type ) {
 	  case "text":
+	  case "password":
 	  lv_val = v_elm.value;
 	  break;
 	  
@@ -2516,33 +2683,25 @@ $(document).ready( function() {
   }
   
   fn_clearElments = function( v_id ) {
-    $( ":input", "#" + v_id ).each( function() {
-      var _this = this;
-      var lv_type = _this.type;
-	
-	switch( lv_type ) {
-	  case 'text':
-	    _this.value = "";
-	    break;
-	  case 'checkbox':
-	    _this.checked = false;
-	    break;
-	  case 'button':
-	    break;
-	  default:
-	    _this.value = "";
-	}
-    });
-    
-    $( ":select", "#" + v_id ).each( function() {
-      var _this = this;
-      _this.selectedIndex = -1;
-    });
-    
-    $( ":textarea", "#" + v_id ).each( function() {
-      var _this = this;
-      _this.value = "";
-    });
+    if( $( ":input", "#" + v_id ) ) {
+      $( ":input", "#" + v_id ).each( function() {
+	var _this = this;
+	var lv_type = _this.type;
+	  
+	  switch( lv_type ) {
+	    case 'text':
+	      _this.value = "";
+	      break;
+	    case 'checkbox':
+	      _this.checked = false;
+	      break;
+	    case 'button':
+	      break;
+	    default:
+	      _this.value = "";
+	  }
+      });
+    }
   }
   
   fn_getPosition = function( v_elementId ) {
@@ -2557,7 +2716,7 @@ $(document).ready( function() {
     }
     
     var lv_ua = window.navigator.userAgent;
-    var lv_msie = lv_ua.indexOf("MSIE ");
+    var lv_msie = lv_ua.indexOf("MSIE");
     
     if( lv_msie == -1 ) {
       var lv_doc = document.documentElement;
