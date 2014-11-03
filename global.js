@@ -1,4 +1,3 @@
-
 $(document).ready( function() {
 
 /*****Code for DataStore****/
@@ -1429,6 +1428,7 @@ $(document).ready( function() {
     this.maskElementId = (v_params.maskElementId) ? v_params.maskElementId : false;
     this.data = (v_params.data) ? v_params.data : false;
     this.buttons = (v_params.buttons) ? v_params.buttons : false;
+    this.buttonsTop = (v_params.buttonsTop) ? v_params.buttonsTop : false;
     
     return this;
   }
@@ -1511,6 +1511,29 @@ $(document).ready( function() {
     
     lv_table.appendChild( lv_tr_title );
     
+    //Top Buttons
+    var lv_tr_topbtns = document.createElement("tr");
+    var lv_td_topbtns = document.createElement("td");
+    var lv_btnstop_table = document.createElement("table");
+	lv_btnstop_table.style.float = "right";
+    var lv_btnstop_tr = document.createElement("tr");
+    if( _this.buttonsTop ) {
+      var lv_buttonstop_arry = _this.buttonsTop;
+      
+      $.each( lv_buttonstop_arry, function( v_idx, v_val ) {
+	var lv_btnstop_td = document.createElement("td");
+	var lv_btntop = fn_attachHandler( 'button', v_val );
+	
+	lv_btnstop_td.appendChild( lv_btntop );
+	lv_btnstop_tr.appendChild( lv_btnstop_td );
+      });
+    }
+    lv_btnstop_table.appendChild( lv_btnstop_tr );
+    lv_td_topbtns.appendChild( lv_btnstop_table );
+    lv_tr_topbtns.appendChild( lv_td_topbtns );
+    lv_table.appendChild( lv_tr_topbtns );
+    //End of code for Top buttons
+    
     //Window Elements Body
     var lv_tr_body = document.createElement("tr");
     var lv_td_body = document.createElement("td");
@@ -1565,6 +1588,7 @@ $(document).ready( function() {
     
     //Buttons
     var lv_btns_table = document.createElement("table");
+	lv_btns_table.style.float = "right";
     var lv_btns_tr = document.createElement("tr");
     if( _this.buttons ) {
       var lv_buttons_arry = _this.buttons;
@@ -2702,6 +2726,11 @@ $(document).ready( function() {
 	  }
       });
     }
+  }
+  
+  fn_validateEmail = function( v_email ) { 
+    var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test( v_email );
   }
   
   fn_getPosition = function( v_elementId ) {
