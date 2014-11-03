@@ -48,26 +48,71 @@ $root = realpath( $_SERVER["DOCUMENT_ROOT"] );
     if( $_SESSION['usr_auth_assign_req'] == 1 ) {
       global $mysqli;
       
+      $validation_check = true;
+      
       $newUser = new User();
-      if( isset( $prms["txtusrname"] ) && ( $prms["txtusrname"] ) ) {
+      if( isset( $prms["txtusrname"] ) && ( $prms["txtusrname"] ) && ( $validation_check ) ) {
         $newUser->loginid = $prms["txtusrname"];
       }
-      if( isset( $prms["txtfname"] ) && ( $prms["txtfname"] ) ) {
+      else {
+	$validation_check = false;
+	echo json_encode( array( "success"=>false, "error"=>"Please enter an UserName!" ) );
+      }
+      
+      if( isset( $prms["txtfname"] ) && ( $prms["txtfname"] ) && ( $validation_check ) ) {
         $newUser->name = $prms["txtfname"];
       }
-      if( isset( $prms["txtlname"] ) && ( $prms["txtlname"] ) ) {
+      else {
+	$validation_check = false;
+	echo json_encode( array( "success"=>false, "error"=>"Please enter First Name!" ) );
+      }
+      
+      if( isset( $prms["txtlname"] ) && ( $prms["txtlname"] ) && ( $validation_check ) ) {
         $newUser->name .= " ".$prms["txtlname"];
       }
-      if( isset( $prms["txtpwd"] ) && ( $prms["txtpwd"] ) ) {
+      else {
+	$validation_check = false;
+	echo json_encode( array( "success"=>false, "error"=>"Please enter Last Name!" ) );
+      }
+      
+      if( isset( $prms["txtpwd"] ) && ( $prms["txtpwd"] ) && ( $validation_check ) ) {
         $newUser->password = $prms["txtpwd"];
       }
-      if( isset( $prms["cmbDept"] ) && ( $prms["cmbDept"] ) ) {
-        $newUser->dept_id = $prms["cmbDept"];
+      else {
+	$validation_check = false;
+	echo json_encode( array( "success"=>false, "error"=>"Please enter a password!" ) );
       }
       
-      $result = $newUser->addData();
+      if( isset( $prms["cmbDept"] ) && ( $prms["cmbDept"] ) && ( $validation_check ) ) {
+        $newUser->dept_id = $prms["cmbDept"];
+      }
+      else {
+	$validation_check = false;
+	echo json_encode( array( "success"=>false, "error"=>"Please select a department!" ) );
+      }
       
-      echo json_encode( array( "success"=>true, "result"=>$result ) );
+      if( isset( $prms["txtemail"] ) && ( $prms["txtemail"] ) && ( $validation_check ) ) {
+	if( fn_validateEmail( $prms["txtemail"] ) ) {
+	  $newUser->email = $prms["txtemail"];
+	}
+        else {
+	  $validation_check = false;
+	  echo json_encode( array( "success"=>false, "error"=>"Please enter a valid email!" ) );
+	}
+      }
+      else {
+	$validation_check = false;
+	echo json_encode( array( "success"=>false, "error"=>"Please enter an email!" ) );
+      }
+      
+      if( $validation_check ) {
+	$result = $newUser->addData();
+	
+	echo json_encode( array( "success"=>true, "result"=>$result ) );
+      }
+      else {
+	echo json_encode( array( "success"=>false, "error"=>"Please remove validation errors!" ) );
+      }
     }
     else {
       echo json_encode( array( "success"=>false, "error"=>"You are not authorized to perform this action!" ) );
