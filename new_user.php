@@ -3,7 +3,7 @@ session_start();
 $root = realpath( $_SERVER["DOCUMENT_ROOT"] );
   include "checkstatus.php";
   
-  if( $_SESSION['usr_auth_assign_req'] == 1 ) {
+  if( $_SESSION['usr_auth_add_user'] == 1 ) {
     
 ?>
 
@@ -66,6 +66,10 @@ $root = realpath( $_SERVER["DOCUMENT_ROOT"] );
                 <tr>
                   <td>Department:</td>
                   <td><div id="divDept"></div></td>
+                </tr>
+                <tr>
+                  <td>Email:</td>
+                  <td><input type="text" id="txtemail" name="txtemail" /></td>
                 </tr>
                 <tr>
                   <td colspan="3"><input type="button" id="btnsubmit" name="btnsubmit" value="Submit" /></td>
@@ -152,6 +156,22 @@ $root = realpath( $_SERVER["DOCUMENT_ROOT"] );
                     }
                     break;
                   
+                  case "txtemail":
+                    if( fn_validateEmail( lv_val ) ) {
+                      lv_errMsg.remove();
+                      lv_itemOK.render();
+                      lv_itemOK.show();
+                      fn_splice_array_elm_by_val( v_id, gv_chk_errs );
+                    }
+                    else {
+                      lv_itemOK.remove();
+                      lv_errMsg.setErrorText( "Please enter a valid email!" );
+                      lv_errMsg.render();
+                      lv_errMsg.show();
+                      gv_chk_errs.push( v_id );
+                    }
+                    break;
+                  
                   default:
                     lv_errMsg.remove();
                     lv_itemOK.render();
@@ -193,6 +213,10 @@ $root = realpath( $_SERVER["DOCUMENT_ROOT"] );
               fn_validate_field("cmbDept");
             });
             
+            $( "#txtemail" ).blur( function() {
+              fn_validate_field("txtemail");
+            });
+            
             fn_validate_form = function() {
               fn_validate_field("txtusrname");
               fn_validate_field("txtfname");
@@ -200,6 +224,7 @@ $root = realpath( $_SERVER["DOCUMENT_ROOT"] );
               fn_validate_field("txtpwd");
               fn_validate_field("txtcpwd");
               fn_validate_field("cmbDept");
+              fn_validate_field("txtemail");
             }
             
             $( "#btnsubmit" ).on( 'click', function() {
