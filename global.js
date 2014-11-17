@@ -457,6 +457,7 @@ $(document).ready( function() {
       
       var lv_page_table = document.createElement("table"); //Paging table
 	  lv_page_table.style.width = "100%";
+	  lv_page_table.className = "clspagingtbl";
       var lv_page_tr = document.createElement("tr"); //Page tr
       
       var lv_page_td_first = document.createElement("td"); //first
@@ -480,6 +481,9 @@ $(document).ready( function() {
 	lv_page_td_last.className = "clspglst clspglstdsbl clsbtndsbl";
       }
       
+      var lv_curr_pg_main_td = document.createElement("td");
+      var lv_curr_pg_table_cont = document.createElement("table");
+      var lv_curr_pg_tr_cont = document.createElement("tr");
       var lv_page_td_curr_pg = document.createElement("td"); //current page number
 	  lv_page_td_curr_pg.className = "clscurrpage";
       var lv_cur_pg_label = document.createElement("label");
@@ -533,12 +537,17 @@ $(document).ready( function() {
       lv_page_td_curr_pg.appendChild( lv_cur_pg_label );
       lv_page_td_curr_pg.appendChild( lv_page_input_page_no );
       
+      //Page Numbers
+      lv_curr_pg_tr_cont.appendChild( lv_page_td_curr_pg );
+      lv_curr_pg_tr_cont.appendChild( lv_page_td_total_pgs );
+      lv_curr_pg_table_cont.appendChild( lv_curr_pg_tr_cont );
+      lv_curr_pg_main_td.appendChild( lv_curr_pg_table_cont );
+      
       lv_page_tr.appendChild( lv_page_td_first );
       lv_page_tr.appendChild( lv_page_td_previous );
       lv_page_tr.appendChild( lv_page_td_next );
       lv_page_tr.appendChild( lv_page_td_last );
-      lv_page_tr.appendChild( lv_page_td_curr_pg );
-      lv_page_tr.appendChild( lv_page_td_total_pgs );
+      lv_page_tr.appendChild( lv_curr_pg_main_td );
       
       if( _this.showTotalCount ) {
 	lv_page_tr.appendChild( lv_total_record_td );
