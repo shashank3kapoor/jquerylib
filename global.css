@@ -27,7 +27,7 @@ th span.clsgrdheadertxt { position: relative; float: left; margin-left: 3px; }
 td.clsalertbtn, td.clsalerttxttd { text-align: center; font-size:12px; FONT-FAMILY: Arial; }
 td.clsalertbtn div input[type="button"] { margin: 0px 3px 0px 3px; }
 .clsselected td { background-color: lightblue; cursor: url('/images/curnw.cur'), pointer; }
-div.clsgrdpagcont { overflow: hidden; border: 1px solid #999999; }
+div.clsgrdpagcont { overflow: hidden; border: 1px solid #999999; width: 100%; }
 div.clsgrdpagcont table { font-size:12px; FONT-FAMILY: Arial; }
 td.clspgfst { width: 35px; }
 td.clspgpre { width: 27px; }
@@ -50,10 +50,10 @@ td.clspgfst:hover.clspgfstdsbl, td.clspgpre:hover.clspgpredsbl, td.clspgnxt:hove
 td.clsbtnleft { width: 3px; height: 21px; margin: 0; padding: 0; }
 td.clsbtnmid { height: 21px; width: auto; margin: 0; padding: 0; }
 td.clsbtnright { width: 3px; height: 21px; margin: 0; padding: 0; }
-td:hover table td.clsbtnleft { background-image: url('/images/tb-btn-sprite.png'); background-position: 0px 0px; background-repeat: no-repeat; }
-td:hover table td.clsbtnmid { background-image: url('/images/tb-btn-sprite.png'); background-position: 0px -42px; background-repeat: repeat-x; }
-td:hover table td.clsbtnright { background-image: url('/images/tb-btn-sprite.png'); background-position: 0px -21px; background-repeat: no-repeat; }
-td.clsbtndsbl:hover table td.clsbtnleft, td.clsbtndsbl:hover table td.clsbtnmid, td.clsbtndsbl:hover table td.clsbtnright { background: none; }
+table.clspagingtbl td:hover table td.clsbtnleft { background-image: url('/images/tb-btn-sprite.png'); background-position: 0px 0px; background-repeat: no-repeat; }
+table.clspagingtbl td:hover table td.clsbtnmid { background-image: url('/images/tb-btn-sprite.png'); background-position: 0px -42px; background-repeat: repeat-x; }
+table.clspagingtbl td:hover table td.clsbtnright { background-image: url('/images/tb-btn-sprite.png'); background-position: 0px -21px; background-repeat: no-repeat; }
+table.clspagingtbl td.clsbtndsbl:hover table td.clsbtnleft, table.clspagingtbl td.clsbtndsbl:hover table td.clsbtnmid, table.clspagingtbl td.clsbtndsbl:hover table td.clsbtnright { background: none; }
 td.clscurrpage { text-align: right; width: 143px; }
 td.clscurrpage input[type="text"] { width: 43px; text-align: right; }
 td.clstotrecs label { margin-left: 23px; }
