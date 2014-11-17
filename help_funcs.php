@@ -1,5 +1,5 @@
 <?php
-    function fn_csv_to_array($filename='', $delimiter=',') {
+  function fn_csv_to_array($filename='', $delimiter=',') {
       if(!file_exists($filename) || !is_readable($filename))
           return FALSE;
       
@@ -19,7 +19,7 @@
       return $data;
   }
   
-  function fn_query_to_csv( $mysqli, $sql, $filename, $attachment = false, $headers = true ) {
+  function fn_query_to_csv( $mysqli, $sql, $filename, $attachment = false, $headers = true, $headerArry = false ) {
       if( $attachment || is_writable( $filename ) ) {
 	if($attachment) {
 	    // send response headers to the browser
@@ -36,12 +36,18 @@
 	      // output header row (if at least one row exists)
 	      if( $row = $result->fetch_object() ) {
 		$header_keys = array();
-		foreach( $row AS $key => $val ) {
-		  $header_keys[] = $key;
+		if( $headerArry ) {
+		  $header_keys = $headerArry;
 		}
-		  fputcsv( $fp, $header_keys );
-		  // reset pointer back to beginning
-		  mysql_data_seek( $result, 0 );
+		else {
+		  foreach( $row AS $key => $val ) {
+		    $header_keys[] = $key;
+		  }
+		}
+		
+		fputcsv( $fp, $header_keys );
+		// reset pointer back to beginning
+		mysql_data_seek( $result, 0 );
 	      }
 	  }
 	  
