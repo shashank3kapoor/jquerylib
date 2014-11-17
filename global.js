@@ -1,3 +1,4 @@
+
 $(document).ready( function() {
 
 /*****Code for DataStore****/
@@ -740,7 +741,9 @@ $(document).ready( function() {
       var lv_data = _this.data;
       _this.selectedRowIndex = $(this).index();
       _this.selectedRow = (_this.selectedRowIndex != null) ? lv_data[_this.selectedRowIndex] : null;
-      v_fun( _this, _this.selectedRow, _this.selectedRowIndex );
+      if( typeof v_fun === "function" ) {
+	v_fun( _this, _this.selectedRow, _this.selectedRowIndex );
+      }
     });
   }
   
@@ -1319,6 +1322,7 @@ $(document).ready( function() {
     this.textField = v_params.textField;
     this.defaultSelectedValue = (v_params.defaultSelectedValue) ? v_params.defaultSelectedValue : null ;
     this.disabled = (v_params.disabled) ? v_params.disabled : false;
+    this.listeners = (v_params.listeners) ? v_params.listeners : false;
     
     return this;
   }
@@ -1405,6 +1409,18 @@ $(document).ready( function() {
 	    
 	  }
 	);
+    }
+    
+    //Listeners
+    if( _this.listeners ) {
+      var lv_listeners = _this.listeners;
+      $.each( lv_listeners, function( v_idx, v_val ) {
+	  $( lv_combo ).bind( v_idx, function() {
+	    if( typeof v_val === "function" ) {
+	      v_val( lv_combo );
+	    }
+	  });
+      });
     }
     
     lv_div.appendChild( lv_combo ); //Add Combo to the Container Element
@@ -1653,6 +1669,8 @@ $(document).ready( function() {
   settingsMenuPanel.prototype.render = function() {
     var _this = this;
     var lv_container_elm = document.getElementById( _this.container_id );
+	lv_container_elm.style.zIndex = "143";
+	lv_container_elm.style.position = "relative";
     
     if( _this.data ) {
       var lv_menu = _this.data.menu;
@@ -1660,6 +1678,7 @@ $(document).ready( function() {
       var lv_cont_ul = document.createElement("ul");
 	  lv_cont_ul.id = "ulcontmenu";
 	  lv_cont_ul.style.zIndex = "143";
+	  lv_cont_ul.style.position = "relative";
       var lv_setting_li = document.createElement("li");
       var lv_setting_a_cont = document.createElement("a");
 	  lv_setting_a_cont.href = "#";
@@ -2367,7 +2386,24 @@ $(document).ready( function() {
     var lv_data = v_data;
     
     for(var v_key in lv_data ) {
-      $( v_divElmt ).find( "#" + v_key ).html( lv_data[v_key] );
+      
+      var lv_found_elm = $( v_divElmt ).find( "#" + v_key );
+      var lv_elmTagName = lv_found_elm.prop("tagName");
+      
+      switch( lv_elmTagName ) {
+	case "INPUT":
+	case "SELECT":
+	case "TEXTAREA":
+	  lv_found_elm.val( lv_data[v_key] );
+	  break;
+	
+	case "DIV":
+	  lv_found_elm.html( lv_data[v_key] );
+	  break;
+	
+	default:
+	  lv_found_elm.html( lv_data[v_key] );
+      }
     }
     
   }
@@ -2575,12 +2611,17 @@ $(document).ready( function() {
 	switch( v_elm.type ) {
 	  case "text":
 	  case "password":
+	  case "hidden":
 	  lv_val = v_elm.value;
+	  lv_retObj = {};
+	  lv_retObj[v_elm.id] = lv_val;
 	  break;
 	  
 	  case "radio":
 	    if( v_elm.checked ) {
 	      lv_val = v_elm.value;
+	      lv_retObj = {};
+	      lv_retObj[v_elm.id] = lv_val;
 	    }
 	}
 	break;
@@ -2588,21 +2629,16 @@ $(document).ready( function() {
       case "SELECT":
       case "TEXTAREA":
 	lv_val = v_elm.value;
+	lv_retObj = {};
+	lv_retObj[v_elm.id] = lv_val;
 	break;
       
       default:
 	lv_val = null;
+	lv_retObj = lv_val;
     }
     
-    if( lv_val ) {
-      lv_retObj = {};
-      lv_retObj[v_elm.id] = lv_val;
-      
-      return lv_retObj;
-    }
-    else {
-      return lv_val;
-    }
+    return lv_retObj;
   }
   
   fn_isAryEmpty = function( v_ary ) {
