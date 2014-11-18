@@ -1,10 +1,3 @@
-/*	Modification History
-	******************************************************************************************************
-	Date			08 Aug 2014
-	By		        Shashank Kapoor
-	Description		Global styles for generic usage
-	******************************************************************************************************
-*/
 body { line-height: 17px; vertical-align: middle; }
 select, input[type="text"], input[type="password"], textarea { width: 143px; font-family: Verdana, Arial, Helvetica, sans-serif; font-size: xx-small; font-style: normal; color: #333333; background-color: #EEEEEE; border: 1px solid #999999; }
 button, input[type="button"] { height: 20px; BORDER-RIGHT: #999999 1px solid; BORDER-TOP: #999999 1px solid; FONT-WEIGHT: bold; BORDER-LEFT: #999999 1px solid; COLOR: #666666; BORDER-BOTTOM: #999999 1px solid; FONT-STYLE: normal; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif; BACKGROUND-COLOR: #eeeeee; border-shadow-color: #FFFFFF;}
@@ -28,6 +21,7 @@ div.clsgrddata table { font-size:12px; FONT-FAMILY: Arial; border-collapse:colla
 div.clsgrddata table tr { vertical-align: middle; }
 div.clsgrddata table tr:hover { background-color: #b3b3b3; cursor: url('/images/curnw.cur'), pointer; }
 div.clswintitle { font-size:12px; FONT-FAMILY: Arial; text-decoration: underline; background-color:#f3f3f3; border-bottom: 1px solid grey; }
+div.clswintitle:hover { cursor: url('/images/curnw.cur'), pointer; }
 th.clsgrdheaderasc span.clsgrdheaderimg { background-image: url('/images/up.png'); position: relative; float: left; }
 th.clsgrdheaderdesc span.clsgrdheaderimg { background-image: url('/images/down.png'); position: relative; float: left; }
 th span.clsgrdheadertxt { position: relative; float: left; margin-left: 3px; }
