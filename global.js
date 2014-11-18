@@ -1639,7 +1639,7 @@ $(document).ready( function() {
     
     var lv_tr_ttl = document.getElementById( "trWinTitle" + _this.id );
     var lv_divWinObjCt = document.getElementById( "divWinObjCont" + _this.id );
-    lv_tr_ttl.onmousedown = function( v_e ) { fn_makeDraggable( lv_divWinObjCt ) };
+    fn_makeDraggable( lv_tr_ttl, lv_divWinObjCt );
   }
   
   windowPanel.prototype.show = function() {
@@ -2829,12 +2829,17 @@ $(document).ready( function() {
 	      lv_element = lv_element.offsetParent;
 	  }
 	  
-	  var lv_doc = document.documentElement;
-	  var lv_win_left = (window.pageXOffset || lv_doc.scrollLeft) - (lv_doc.clientLeft || 0);
-	  var lv_win_top = (window.pageYOffset || lv_doc.scrollTop)  - (lv_doc.clientTop || 0);
+	  var lv_ua = window.navigator.userAgent;
+	  var lv_msie = lv_ua.indexOf("MSIE");
 	  
-	  lv_xPosition += lv_win_left;
-	  lv_yPosition += lv_win_top;
+	  if( lv_msie == -1 ) {
+	    var lv_doc = document.documentElement;
+	    var lv_win_left = (window.pageXOffset || lv_doc.scrollLeft) - (lv_doc.clientLeft || 0);
+	    var lv_win_top = (window.pageYOffset || lv_doc.scrollTop)  - (lv_doc.clientTop || 0);
+	    
+	    lv_xPosition += lv_win_left;
+	    lv_yPosition += lv_win_top;
+	  }
 	  
 	  return { x: lv_xPosition, y: lv_yPosition };
 	}
@@ -2850,21 +2855,21 @@ $(document).ready( function() {
 	    v_ev = v_ev || window.event; 
 	    var lv_mousePos = fn_mouseCoords(v_ev); 
 	    if( gv_dragObject ){
-	        gv_dragObject.style.position = 'absolute'; 
-	        gv_dragObject.style.top      = lv_mousePos.y - gv_mouseOffset.y; 
-	        gv_dragObject.style.left     = lv_mousePos.x - gv_mouseOffset.x; 
+	        gv_dragObject.style.position = 'absolute';
+	        gv_dragObject.style.top      = ( lv_mousePos.y - gv_mouseOffset.y) + "px"; 
+	        gv_dragObject.style.left     = ( lv_mousePos.x - gv_mouseOffset.x ) + "px";
 	    }
 	}
 	
-	fn_mouseUp = function() {
+	fn_mouseUp = function( v_ev ) {
 	    gv_dragObject = null; 
 	}
 	
-	fn_makeDraggable = function( v_item ){
+	fn_makeDraggable = function( v_this, v_item ){
 	    if(!v_item) return; 
-	    v_item.onmousedown = function(v_ev){ 
-	        gv_dragObject  = this; 
-	        gv_mouseOffset = fn_getMouseOffset(this, v_ev); 
+	    v_this.onmousedown = function(v_ev){ 
+	        gv_dragObject  = v_item; 
+	        gv_mouseOffset = fn_getMouseOffset(v_item, v_ev); 
 	    }
 	}
 	
