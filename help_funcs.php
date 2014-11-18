@@ -26,6 +26,8 @@
 	    //header( 'Content-Type: text/csv' );
 	    header('Content-Type: application/octet-stream');
 	    header( 'Content-Disposition: attachment;filename="'.$filename.'"' );
+	    header("Pragma: ");
+	    header("Cache-Control: ");
 	    $fp = fopen('php://output', 'w');
 	} else {
 	    $fp = fopen( $filename, 'w');
