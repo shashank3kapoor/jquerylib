@@ -2503,6 +2503,21 @@ $(document).ready( function() {
     }
   }
   
+  //Remove Element object
+  fn_removeElemObj = function( v_obj ) {
+    var lv_node = v_obj;
+    if( lv_node != undefined ) {
+      var lv_parentNode = lv_node.parentNode;
+      if ( lv_parentNode != undefined ) {
+	lv_parentNode.removeChild( lv_node );
+      }
+      else {
+	document.body.removeChild( lv_node );
+      }
+      
+    }
+  }
+  
   fn_setCookie = function( name, value, days ) {
     if (days) {
         var date = new Date();
