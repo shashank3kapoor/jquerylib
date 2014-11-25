@@ -1384,7 +1384,25 @@ $(document).ready( function() {
     
     //If DATA Store is given
     if( _this.store ) {
-      var lv_urlObj = fn_getURLnFun( _this.store.url );
+      if( ( _this.store.data != undefined ) && ( _this.store.data ) ) {
+	  var lv_items_data = _this.store.data;
+	  _this.data = _this.store.data;
+	    
+	    $.each( lv_items_data, function( v_idx, v_val ) {
+	      var lv_opts = document.createElement("option");
+	      lv_opts.value = v_val[_this.valueField];
+	      lv_opts.text = v_val[_this.textField];
+	      
+	      //Select the Default value
+	      if( ( _this.defaultSelectedValue ) && ( v_val[_this.valueField] == _this.defaultSelectedValue ) ) {
+		lv_opts.selected = true;
+	      }
+	      
+	      lv_combo.add( lv_opts );
+	    });
+      }
+      else {
+	var lv_urlObj = fn_getURLnFun( _this.store.url );
 	
 	_this.store.callurl = lv_urlObj.url;
 	_this.store.method = lv_urlObj.method;
@@ -1418,6 +1436,7 @@ $(document).ready( function() {
 	    
 	  }
 	);
+      }
     }
     
     //Listeners
