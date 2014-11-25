@@ -1324,7 +1324,7 @@ $(document).ready( function() {
     this.id = v_params.id;
     this.width = (v_params.width) ? v_params.width : "auto";
     this.height = (v_params.height) ? v_params.height : "auto";
-    this.container_id = v_params.container_id;
+    this.container_id = (v_params.container_id) ? v_params.container_id : false;
     this.data = (v_params.data) ? v_params.data : false;
     this.store = (v_params.store) ? v_params.store : false;
     this.valueField = v_params.valueField;
@@ -1338,8 +1338,11 @@ $(document).ready( function() {
   
   comboBox.prototype.render = function() {
     var _this = this;
-    var lv_div = document.getElementById( _this.container_id );      //Container DIV element
-    lv_div.innerHTML = "";
+    var lv_div = "";
+    if( v_params.container_id ) {
+      lv_div = document.getElementById( _this.container_id );      //Container DIV element
+      lv_div.innerHTML = "";
+    }
     
     var lv_combo = document.createElement("select");
     lv_combo.id = _this.id;
@@ -1451,10 +1454,20 @@ $(document).ready( function() {
       });
     }
     
-    lv_div.appendChild( lv_combo ); //Add Combo to the Container Element
-    
-    _this.containerElement = lv_div;
+    if( v_params.container_id ) {
+      lv_div.appendChild( lv_combo ); //Add Combo to the Container Element
+      
+      _this.containerElement = lv_div;
+    }
     _this.obj = lv_combo;
+  }
+  
+  comboBox.prototype.refresh = function() {
+    var _this = this;
+    
+    _this.data = false;
+    _this.store.data = false;
+    _this.render();
   }
   
   /****End of Code for ComboBox***/
