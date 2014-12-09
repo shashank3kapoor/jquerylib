@@ -759,6 +759,9 @@ $(document).ready( function() {
 	  }
 	);
     }
+    else {
+      _this.loadingMask.hide();
+    }
   }
   
   gridPanel.prototype.getSelectedRowIndex = function() {
@@ -1352,6 +1355,9 @@ $(document).ready( function() {
 	      _this.loadingMask.hide();
 	  }
 	);
+    }
+    else {
+      _this.loadingMask.hide();
     }
   }
   
