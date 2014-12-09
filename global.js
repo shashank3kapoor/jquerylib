@@ -42,13 +42,21 @@ $(document).ready( function() {
       },
       function ( v_data, v_status ) {
 	var lv_data = $.parseJSON( v_data );
-	_this.data = lv_data[_this.root];
 	
-	if( _this.totalProperty ) {
-	  _this.totalValue = parseInt( lv_data[_this.totalProperty] );
+	if( lv_data.success ) {
+	  _this.data = lv_data[_this.root];
+	  
+	  if( _this.totalProperty ) {
+	    _this.totalValue = parseInt( lv_data[_this.totalProperty] );
+	  }
+	  else {
+	    _this.totalValue = false;
+	  }
 	}
 	else {
-	  _this.totalValue = false;
+	  if( lv_data.error != undefined ) {
+	    fn_alert( "Error!", lv_data.error );
+	  }
 	}
       }
     );
@@ -125,18 +133,28 @@ $(document).ready( function() {
 	  },
 	  function ( v_data, v_status ) {
 	    var lv_data = $.parseJSON( v_data );
-	    _this.data = lv_data[_this.store.root];
 	    
-	    _this.store.data = _this.data;
-	    
-	    if( _this.store.totalProperty ) {
-	      _this.store.totalValue = parseInt( lv_data[_this.store.totalProperty] );
+	    if( lv_data.success ) {
+	      _this.data = lv_data[_this.store.root];
+	      
+	      _this.store.data = _this.data;
+	      
+	      if( _this.store.totalProperty ) {
+		_this.store.totalValue = parseInt( lv_data[_this.store.totalProperty] );
+	      }
+	      else {
+		_this.store.totalValue = false;
+	      }
+	      
+	      fn_render_grid( _this );
 	    }
 	    else {
-	      _this.store.totalValue = false;
+	      if( lv_data.error != undefined ) {
+		fn_alert( "Error!", lv_data.error );
+	      }
+	      
+	      _this.loadingMask.hide();
 	    }
-	    
-	    fn_render_grid( _this );
 	  }
 	);
       }
@@ -609,8 +627,8 @@ $(document).ready( function() {
     var _this = this;
     
     //Clear data
-      var lv_data_div = document.getElementById( _this.container_id + "_datadiv" ); //Grid Data DIV
-      if( lv_data_div ) { lv_data_div.innerHTML = ""; }
+      var lv_cont_div = document.getElementById( _this.container_id ); //Grid Container DIV
+      if( lv_cont_div ) { lv_cont_div.innerHTML = ""; }
       
       _this.store.baseParams = false;
       _this.data = false;
@@ -655,81 +673,89 @@ $(document).ready( function() {
 	  },
 	  function ( v_data, v_status ) {
 	    var lv_data = $.parseJSON( v_data );
-	    _this.data = lv_data[_this.store.root];
 	    
-	    //Populate Data into the Grid
-	    var lv_data_div = document.getElementById( _this.container_id + "_datadiv" ); //Grid Data DIV
-	    lv_data_div.innerHTML = "";
-	    lv_data_div.className = "clsgrddata";
-	    
-	    var lv_dataLessHeight = 30;
-	    //For Paging
-	    if( _this.paging ) {
-	      lv_dataLessHeight = 57;
-	    }
-	    
-	    if( $.isNumeric( _this.height ) ) {
-	      lv_data_div.style.height = (_this.height - lv_dataLessHeight) + "px";
+	    if( lv_data.success ) {
+	      _this.data = lv_data[_this.store.root];
+	      
+	      //Populate Data into the Grid
+	      var lv_data_div = document.getElementById( _this.container_id + "_datadiv" ); //Grid Data DIV
+	      lv_data_div.innerHTML = "";
+	      lv_data_div.className = "clsgrddata";
+	      
+	      var lv_dataLessHeight = 30;
+	      //For Paging
+	      if( _this.paging ) {
+		lv_dataLessHeight = 57;
+	      }
+	      
+	      if( $.isNumeric( _this.height ) ) {
+		lv_data_div.style.height = (_this.height - lv_dataLessHeight) + "px";
+	      }
+	      else {
+		lv_data_div.style.height = _this.height;
+	      }
+	      
+	      var lv_data_table = document.createElement("table");  //Data Table
+	      lv_data_table.width = "100%";
+	      lv_data_table.border = 1;
+	      lv_data_table.setAttribute( "id", _this.container_id + "_data");
+	      
+	      var lv_data = _this.data;
+	      var lv_header = _this.headers;
+	      
+	      $.each( lv_data, function( v_data_idx, v_data_val ) {
+		var lv_data_tr = document.createElement("tr");      //Data Row
+		
+		//Check position of Data values
+		  $.each( lv_header, function( v_idx, v_val ) {
+		    var lv_td = document.createElement("td");   //Creating data Values
+		    
+		    lv_td.style.width = v_val.width + "px";
+		    lv_td.innerHTML = v_data_val[v_val.dataIndex];
+		    
+		    //Renderer
+		    if( typeof v_val.renderer === 'function' ) {
+		      lv_td = v_val.renderer( lv_td, v_data_val, v_data_val[v_val.dataIndex] );
+		    }
+		    
+		    lv_data_tr.appendChild( lv_td );   //Add Table data element to row
+		  });
+		  
+		  lv_data_table.appendChild( lv_data_tr );   //Add data row to Table
+	      });
+	      
+	      _this.selectedRowIndex = null;
+	      $( lv_data_table ).delegate("tr", "click", function(e) {
+		  $(this).addClass("clsselected").siblings().removeClass("clsselected");
+		  _this.selectedRowIndex = $(this).index();
+		  _this.selectedRow = (_this.selectedRowIndex != null) ? lv_data[_this.selectedRowIndex] : null;
+	      });
+	      
+	      lv_data_div.appendChild( lv_data_table ); //Add Table to the Data DIV
+	      
+	      _this.dataContainer = lv_data_div;
+	      _this.dataTable = lv_data_table;
+	      
+	      //Listeners
+	      var lv_listeners = _this.listeners;
+	      $.each( lv_listeners, function( v_idx, v_val ) {
+		if( v_idx ) {
+		  fn_assign_grid_event( _this, v_idx, v_val );
+		}
+	      });
+	      
+	      //After Render
+	      if( typeof _this.afterRender === 'function' ) {
+		_this.afterRender( _this );
+	      }
 	    }
 	    else {
-	      lv_data_div.style.height = _this.height;
-	    }
-	    
-	    var lv_data_table = document.createElement("table");  //Data Table
-	    lv_data_table.width = "100%";
-	    lv_data_table.border = 1;
-	    lv_data_table.setAttribute( "id", _this.container_id + "_data");
-	    
-	    var lv_data = _this.data;
-	    var lv_header = _this.headers;
-	    
-	    $.each( lv_data, function( v_data_idx, v_data_val ) {
-	      var lv_data_tr = document.createElement("tr");      //Data Row
-	      
-	      //Check position of Data values
-		$.each( lv_header, function( v_idx, v_val ) {
-		  var lv_td = document.createElement("td");   //Creating data Values
-		  
-		  lv_td.style.width = v_val.width + "px";
-		  lv_td.innerHTML = v_data_val[v_val.dataIndex];
-		  
-		  //Renderer
-		  if( typeof v_val.renderer === 'function' ) {
-		    lv_td = v_val.renderer( lv_td, v_data_val, v_data_val[v_val.dataIndex] );
-		  }
-		  
-		  lv_data_tr.appendChild( lv_td );   //Add Table data element to row
-		});
-		
-		lv_data_table.appendChild( lv_data_tr );   //Add data row to Table
-	    });
-	    
-	    _this.selectedRowIndex = null;
-	    $( lv_data_table ).delegate("tr", "click", function(e) {
-		$(this).addClass("clsselected").siblings().removeClass("clsselected");
-		_this.selectedRowIndex = $(this).index();
-		_this.selectedRow = (_this.selectedRowIndex != null) ? lv_data[_this.selectedRowIndex] : null;
-	    });
-	    
-	    lv_data_div.appendChild( lv_data_table ); //Add Table to the Data DIV
-	    
-	    _this.dataContainer = lv_data_div;
-	    _this.dataTable = lv_data_table;
-	    
-	    //Listeners
-	    var lv_listeners = _this.listeners;
-	    $.each( lv_listeners, function( v_idx, v_val ) {
-	      if( v_idx ) {
-		fn_assign_grid_event( _this, v_idx, v_val );
+	      if( lv_data.error != undefined ) {
+		fn_alert( "Error!", lv_data.error );
 	      }
-	    });
-	    
-	    //After Render
-	    if( typeof _this.afterRender === 'function' ) {
-	      _this.afterRender( _this );
 	    }
-	    
-	    _this.loadingMask.hide();
+	      
+	      _this.loadingMask.hide();
 	  }
 	);
     }
@@ -1122,18 +1148,28 @@ $(document).ready( function() {
 	  },
 	  function ( v_data, v_status ) {
 	    var lv_data = $.parseJSON( v_data );
-	    _this.data = lv_data[_this.store.root];
 	    
-	    _this.store.data = _this.data;
-	    
-	    if( _this.store.totalProperty ) {
-	      _this.store.totalValue = parseInt( lv_data[_this.store.totalProperty] );
+	    if( lv_data.success ) {
+	      _this.data = lv_data[_this.store.root];
+	      
+	      _this.store.data = _this.data;
+	      
+	      if( _this.store.totalProperty ) {
+		_this.store.totalValue = parseInt( lv_data[_this.store.totalProperty] );
+	      }
+	      else {
+		_this.store.totalValue = false;
+	      }
+	      
+	      fn_render_gridChecked( _this );
 	    }
 	    else {
-	      _this.store.totalValue = false;
+	      if( lv_data.error != undefined ) {
+		fn_alert( "Error!", lv_data.error );
+	      }
+	      
+	      _this.loadingMask.hide();
 	    }
-	    
-	    fn_render_gridChecked( _this );
 	  }
 	);
       }
@@ -1181,131 +1217,139 @@ $(document).ready( function() {
 	  },
 	  function ( v_data, v_status ) {
 	    var lv_data = $.parseJSON( v_data );
-	    _this.data = lv_data[_this.store.root];
 	    
-	    //Populate Data into the Grid
-	    var lv_data_div = document.getElementById( _this.container_id + "_datadiv" ); //Grid Data DIV
-	    lv_data_div.innerHTML = "";
-	    lv_data_div.className = "clsgrddata";
-	    
-	    var lv_dataLessHeight = 30;
-	    //For Paging
-	    if( _this.paging ) {
-	      lv_dataLessHeight = 57;
-	    }
-	    
-	    if( $.isNumeric( _this.height ) ) {
-	      lv_data_div.style.height = (_this.height - lv_dataLessHeight) + "px";
+	    if( lv_data.success ) {
+	      _this.data = lv_data[_this.store.root];
+	      
+	      //Populate Data into the Grid
+	      var lv_data_div = document.getElementById( _this.container_id + "_datadiv" ); //Grid Data DIV
+	      lv_data_div.innerHTML = "";
+	      lv_data_div.className = "clsgrddata";
+	      
+	      var lv_dataLessHeight = 30;
+	      //For Paging
+	      if( _this.paging ) {
+		lv_dataLessHeight = 57;
+	      }
+	      
+	      if( $.isNumeric( _this.height ) ) {
+		lv_data_div.style.height = (_this.height - lv_dataLessHeight) + "px";
+	      }
+	      else {
+		lv_data_div.style.height = _this.height;
+	      }
+	      
+	      var lv_data_table = document.createElement("table");  //Data Table
+	      lv_data_table.width = "100%";
+	      lv_data_table.border = 1;
+	      lv_data_table.setAttribute( "id", _this.container_id + "_data");
+	      
+	      var lv_data = _this.data;
+	      var lv_header = _this.headers;
+	      
+	      $.each( lv_data, function( v_data_idx, v_data_val ) {
+		var lv_data_tr = document.createElement("tr");      //Data Row
+		    lv_data_tr.id = _this.container_id + "dataTR" + v_data_idx;
+		var lv_td = document.createElement("td");
+		lv_td.className = "clsdatachkbox";
+		var lv_checkbox_row = document.createElement("input");   //Creating checkbox to select row
+		lv_checkbox_row.type = "checkbox";
+		lv_checkbox_row.title = "Select row";
+		lv_checkbox_row.id = _this.container_id + "chkrow";
+		lv_checkbox_row.onclick = function() {
+		  var _this_parent_tr = this.parentNode.parentNode;
+		  var lv_selected_row_idx = $( _this_parent_tr ).index();
+		    if( this.checked ) {
+		      $( _this_parent_tr ).addClass("clsselected");
+		      _this.selectedRows[lv_selected_row_idx] = lv_data[lv_selected_row_idx];
+		    }
+		    else {
+		      $( _this_parent_tr ).removeClass("clsselected");
+		      delete _this.selectedRows[lv_selected_row_idx];
+		    }
+		};
+		lv_checkbox_row.onchange = function() {
+		  var _this_parent_tr = this.parentNode.parentNode;
+		  var lv_selected_row_idx = $( _this_parent_tr ).index();
+		    if( this.checked ) {
+		      $( _this_parent_tr ).addClass("clsselected");
+		      _this.selectedRows[lv_selected_row_idx] = lv_data[lv_selected_row_idx];
+		    }
+		    else {
+		      $( _this_parent_tr ).removeClass("clsselected");
+		      delete _this.selectedRows[lv_selected_row_idx];
+		    }
+		};
+		
+		//Checkbox Renderer
+		    if( typeof _this.checkBoxRenderer === 'function' ) {
+		      lv_checkbox_row = _this.checkBoxRenderer( lv_checkbox_row, v_data_val );
+		    }
+		    
+		lv_td.appendChild( lv_checkbox_row );   //Add checkbox to table data
+		lv_data_tr.appendChild( lv_td );   //Add Table data element to row
+		
+		//Check position of Data values
+		  $.each( lv_header, function( v_idx, v_val ) {
+		    var lv_td = document.createElement("td");   //Creating data Values
+		    
+		    lv_td.style.width = v_val.width + "px";
+		    lv_td.innerHTML = v_data_val[v_val.dataIndex];
+		    
+		    //Renderer
+		    if( typeof v_val.renderer === 'function' ) {
+		      lv_td = v_val.renderer( lv_td, v_data_val, v_data_val[v_val.dataIndex] );
+		    }
+		    
+		    lv_data_tr.appendChild( lv_td );   //Add Table data element to row
+		  });
+		  
+		  lv_data_table.appendChild( lv_data_tr );   //Add data row to Table
+		
+		//If checkbox selected then add to selectedRows array
+		var lv_data_table_tr = $( lv_data_tr );
+		var lv_selected_row_idx = lv_data_table_tr.index();
+		  if( lv_checkbox_row.checked ) {
+		    lv_data_table_tr.addClass("clsselected");
+		    _this.selectedRows[lv_selected_row_idx] = lv_data[lv_selected_row_idx];
+		  }
+		  else {
+		    lv_data_table_tr.removeClass("clsselected");
+		    delete _this.selectedRows[lv_selected_row_idx];
+		  }
+	      });
+	      
+	      _this.selectedRowIndex = null;
+	      $( lv_data_table ).delegate("tr", "click", function(e) {
+		  _this.selectedRowIndex = $(this).index();
+		  _this.selectedRow = (_this.selectedRowIndex != null) ? lv_data[_this.selectedRowIndex] : null;
+	      });
+	      
+	      lv_data_div.appendChild( lv_data_table ); //Add Table to the Data DIV
+	      
+	      _this.dataContainer = lv_data_div;
+	      _this.dataTable = lv_data_table;
+	      
+	      //Listeners
+	      var lv_listeners = _this.listeners;
+	      $.each( lv_listeners, function( v_idx, v_val ) {
+		if( v_idx ) {
+		  fn_assign_grid_event( _this, v_idx, v_val );
+		}
+	      });
+	      
+	      //After Render
+	      if( typeof _this.afterRender === 'function' ) {
+		_this.afterRender( _this );
+	      }
 	    }
 	    else {
-	      lv_data_div.style.height = _this.height;
-	    }
-	    
-	    var lv_data_table = document.createElement("table");  //Data Table
-	    lv_data_table.width = "100%";
-	    lv_data_table.border = 1;
-	    lv_data_table.setAttribute( "id", _this.container_id + "_data");
-	    
-	    var lv_data = _this.data;
-	    var lv_header = _this.headers;
-	    
-	    $.each( lv_data, function( v_data_idx, v_data_val ) {
-	      var lv_data_tr = document.createElement("tr");      //Data Row
-		  lv_data_tr.id = _this.container_id + "dataTR" + v_data_idx;
-	      var lv_td = document.createElement("td");
-	      lv_td.className = "clsdatachkbox";
-	      var lv_checkbox_row = document.createElement("input");   //Creating checkbox to select row
-	      lv_checkbox_row.type = "checkbox";
-	      lv_checkbox_row.title = "Select row";
-	      lv_checkbox_row.id = _this.container_id + "chkrow";
-	      lv_checkbox_row.onclick = function() {
-		var _this_parent_tr = this.parentNode.parentNode;
-		var lv_selected_row_idx = $( _this_parent_tr ).index();
-		  if( this.checked ) {
-		    $( _this_parent_tr ).addClass("clsselected");
-		    _this.selectedRows[lv_selected_row_idx] = lv_data[lv_selected_row_idx];
-		  }
-		  else {
-		    $( _this_parent_tr ).removeClass("clsselected");
-		    delete _this.selectedRows[lv_selected_row_idx];
-		  }
-	      };
-	      lv_checkbox_row.onchange = function() {
-		var _this_parent_tr = this.parentNode.parentNode;
-		var lv_selected_row_idx = $( _this_parent_tr ).index();
-		  if( this.checked ) {
-		    $( _this_parent_tr ).addClass("clsselected");
-		    _this.selectedRows[lv_selected_row_idx] = lv_data[lv_selected_row_idx];
-		  }
-		  else {
-		    $( _this_parent_tr ).removeClass("clsselected");
-		    delete _this.selectedRows[lv_selected_row_idx];
-		  }
-	      };
-	      
-	      //Checkbox Renderer
-		  if( typeof _this.checkBoxRenderer === 'function' ) {
-		    lv_checkbox_row = _this.checkBoxRenderer( lv_checkbox_row, v_data_val );
-		  }
-		  
-	      lv_td.appendChild( lv_checkbox_row );   //Add checkbox to table data
-	      lv_data_tr.appendChild( lv_td );   //Add Table data element to row
-	      
-	      //Check position of Data values
-		$.each( lv_header, function( v_idx, v_val ) {
-		  var lv_td = document.createElement("td");   //Creating data Values
-		  
-		  lv_td.style.width = v_val.width + "px";
-		  lv_td.innerHTML = v_data_val[v_val.dataIndex];
-		  
-		  //Renderer
-		  if( typeof v_val.renderer === 'function' ) {
-		    lv_td = v_val.renderer( lv_td, v_data_val, v_data_val[v_val.dataIndex] );
-		  }
-		  
-		  lv_data_tr.appendChild( lv_td );   //Add Table data element to row
-		});
-		
-		lv_data_table.appendChild( lv_data_tr );   //Add data row to Table
-	      
-	      //If checkbox selected then add to selectedRows array
-	      var lv_data_table_tr = $( lv_data_tr );
-	      var lv_selected_row_idx = lv_data_table_tr.index();
-		if( lv_checkbox_row.checked ) {
-		  lv_data_table_tr.addClass("clsselected");
-		  _this.selectedRows[lv_selected_row_idx] = lv_data[lv_selected_row_idx];
-		}
-		else {
-		  lv_data_table_tr.removeClass("clsselected");
-		  delete _this.selectedRows[lv_selected_row_idx];
-		}
-	    });
-	    
-	    _this.selectedRowIndex = null;
-	    $( lv_data_table ).delegate("tr", "click", function(e) {
-		_this.selectedRowIndex = $(this).index();
-		_this.selectedRow = (_this.selectedRowIndex != null) ? lv_data[_this.selectedRowIndex] : null;
-	    });
-	    
-	    lv_data_div.appendChild( lv_data_table ); //Add Table to the Data DIV
-	    
-	    _this.dataContainer = lv_data_div;
-	    _this.dataTable = lv_data_table;
-	    
-	    //Listeners
-	    var lv_listeners = _this.listeners;
-	    $.each( lv_listeners, function( v_idx, v_val ) {
-	      if( v_idx ) {
-		fn_assign_grid_event( _this, v_idx, v_val );
+	      if( lv_data.error != undefined ) {
+		fn_alert( "Error!", lv_data.error );
 	      }
-	    });
-	    
-	    //After Render
-	    if( typeof _this.afterRender === 'function' ) {
-	      _this.afterRender( _this );
 	    }
-	    
-	    _this.loadingMask.hide();
+	      
+	      _this.loadingMask.hide();
 	  }
 	);
     }
@@ -1339,7 +1383,7 @@ $(document).ready( function() {
   comboBox.prototype.render = function() {
     var _this = this;
     var lv_div = "";
-    if( v_params.container_id ) {
+    if( _this.container_id ) {
       lv_div = document.getElementById( _this.container_id );      //Container DIV element
       lv_div.innerHTML = "";
     }
@@ -1419,23 +1463,31 @@ $(document).ready( function() {
 	  },
 	  function ( v_data, v_status ) {
 	    var lv_data = $.parseJSON( v_data );
-	    _this.data = lv_data[_this.store.root];
-	    var lv_items_data = lv_data[_this.store.root];
 	    
-	    _this.store.data = _this.data;
-	    
-	    $.each( lv_items_data, function( v_idx, v_val ) {
-	      var lv_opts = document.createElement("option");
-	      lv_opts.value = v_val[_this.valueField];
-	      lv_opts.text = v_val[_this.textField];
+	    if( lv_data.success ) {
+	      _this.data = lv_data[_this.store.root];
+	      var lv_items_data = lv_data[_this.store.root];
 	      
-	      //Select the Default value
-	      if( ( _this.defaultSelectedValue ) && ( v_val[_this.valueField] == _this.defaultSelectedValue ) ) {
-		lv_opts.selected = true;
+	      _this.store.data = _this.data;
+	      
+	      $.each( lv_items_data, function( v_idx, v_val ) {
+		var lv_opts = document.createElement("option");
+		lv_opts.value = v_val[_this.valueField];
+		lv_opts.text = v_val[_this.textField];
+		
+		//Select the Default value
+		if( ( _this.defaultSelectedValue ) && ( v_val[_this.valueField] == _this.defaultSelectedValue ) ) {
+		  lv_opts.selected = true;
+		}
+		
+		lv_combo.add( lv_opts );
+	      });
+	    }
+	    else {
+	      if( lv_data.error != undefined ) {
+		fn_alert( "Error!", lv_data.error );
 	      }
-	      
-	      lv_combo.add( lv_opts );
-	    });
+	    }
 	    
 	  }
 	);
@@ -1454,7 +1506,7 @@ $(document).ready( function() {
       });
     }
     
-    if( v_params.container_id ) {
+    if( _this.container_id ) {
       lv_div.appendChild( lv_combo ); //Add Combo to the Container Element
       
       _this.containerElement = lv_div;
