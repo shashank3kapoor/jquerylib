@@ -1,4 +1,33 @@
 
+  fn_sleep = function( v_millis ) 
+  {
+    var lv_date = new Date();
+    var lv_curDate = null;
+    
+    do { lv_curDate = new Date(); } 
+    while( lv_curDate - lv_date < v_millis );
+  }
+  
+  if (window.addEventListener) {
+    window.addEventListener('load', function() {
+      document.body.className = "clsprgrsed";
+    }, false);
+  } else if (window.attachEvent) {
+    window.attachEvent('onload', function() {
+      document.body.className = "clsprgrsed";
+    });
+  }
+  
+  if (document.addEventListener) {
+    document.addEventListener('ready', function() {
+      document.body.className = "clsprgrsst";
+    }, false);
+  } else if (document.attachEvent) {
+    document.attachEvent('onready', function() {
+      document.body.className = "clsprgrsst";
+    });
+  }
+
 $(document).ready( function() {
 
 /*****Code for DataStore****/
