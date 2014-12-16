@@ -1617,6 +1617,7 @@ $(document).ready( function() {
     lv_divWinObj.id = "divWinObj" + _this.id;
     lv_divWinObj.style.background = "#FFFFFF";
     lv_divWinObj.style.border = "1px solid #000000";
+    lv_divWinObj.className = "clswinpnl";
     
     if( $.isNumeric( _this.width ) ) {
       lv_divWinObj.style.width = _this.width + "px";
