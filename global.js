@@ -14,7 +14,7 @@
     }, false);
   } else if (window.attachEvent) {
     window.attachEvent('onload', function() {
-      document.body.className = "clsprgrsed";
+      document.body.cfn_getElemValuelassName = "clsprgrsed";
     });
   }
   
@@ -2521,6 +2521,21 @@ $(document).ready( function() {
       
       switch( lv_elmTagName ) {
 	case "INPUT":
+	  switch( lv_found_elm.attr( "type" ) ) {
+	    case "checkbox":
+	      if( ( lv_data[v_key] ) && ( lv_data[v_key] != '0' ) && ( lv_data[v_key] != 'false' ) ) {
+		lv_found_elm.attr("checked", true );
+	      }
+	      else {
+		lv_found_elm.attr("checked", false );
+	      }
+	      break;
+	    
+	    default:
+	      lv_found_elm.val( lv_data[v_key] );
+	  }
+	  break;
+	  
 	case "SELECT":
 	case "TEXTAREA":
 	  lv_found_elm.val( lv_data[v_key] );
@@ -2767,6 +2782,13 @@ $(document).ready( function() {
 	      lv_retObj = {};
 	      lv_retObj[v_elm.id] = lv_val;
 	    }
+	    break;
+	  
+	  case "checkbox":
+	    lv_val = v_elm.checked;
+	    lv_retObj = {};
+	    lv_retObj[v_elm.id] = lv_val;
+	    break;
 	}
 	break;
       
