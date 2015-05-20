@@ -2584,7 +2584,11 @@ $(document).ready( function() {
   
   //Get Hightest Z-Index
   fn_getHighestZIndex = function( v_elem ) {
-    var lv_elems = document.getElementsByTagName(v_elem);
+    var lv_elems_ary = document.getElementsByTagName(v_elem);
+    var lv_elems = [];
+    if( lv_elems_ary[0] != undefined ) {
+      lv_elems = lv_elems_ary[0].getElementsByTagName("*");;
+    }
     var lv_highest = 0;
     for (var i = 0; i < lv_elems.length; i++) {
       var lv_zindex = 0;
